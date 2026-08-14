@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { SLUG_MAX, SLUG_MIN, SLUG_PATTERN } from "./slug";
 
+// For CREATE: an omitted or empty field simply means "not set" (undefined).
 const optionalTrimmedString = (max: number) =>
   z
     .string()
@@ -9,7 +10,19 @@ const optionalTrimmedString = (max: number) =>
     .optional()
     .transform((v) => (v === "" ? undefined : v));
 
+// For UPDATE (partial): distinguish "field absent" (undefined → leave
+// unchanged) from "field present but empty" (null → clear it). This is what
+// lets the edit form actually remove a title / description / UTM value.
+const clearableTrimmedString = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .optional()
+    .transform((v) => (v === undefined ? undefined : v === "" ? null : v));
+
 const utmField = optionalTrimmedString(255);
+const clearableUtmField = clearableTrimmedString(255);
 
 export const slugSchema = z
   .string()
@@ -43,8 +56,8 @@ export const createLinkSchema = z.object({
 export const updateLinkSchema = z.object({
   destinationUrl: z.string().trim().min(1).optional(),
   slug: slugSchema.optional(),
-  title: optionalTrimmedString(200),
-  description: optionalTrimmedString(1000),
+  title: clearableTrimmedString(200),
+  description: clearableTrimmedString(1000),
   campaignId: z
     .string()
     .trim()
@@ -62,11 +75,11 @@ export const updateLinkSchema = z.object({
       (v) => v === undefined || v === null || !Number.isNaN(Date.parse(v)),
       "Invalid expiration date.",
     ),
-  utmSource: utmField.nullable(),
-  utmMedium: utmField.nullable(),
-  utmCampaign: utmField.nullable(),
-  utmTerm: utmField.nullable(),
-  utmContent: utmField.nullable(),
+  utmSource: clearableUtmField,
+  utmMedium: clearableUtmField,
+  utmCampaign: clearableUtmField,
+  utmTerm: clearableUtmField,
+  utmContent: clearableUtmField,
 });
 
 export const createCampaignSchema = z.object({

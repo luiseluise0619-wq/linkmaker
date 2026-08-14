@@ -13,12 +13,15 @@ export const dynamic = "force-dynamic";
  * this automatically when the secret is configured.
  */
 export async function GET(req: NextRequest) {
+  // Fail closed: this endpoint deletes data, so refuse unless a secret is
+  // configured AND presented. Never run unauthenticated.
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const auth = req.headers.get("authorization");
-    if (auth !== `Bearer ${secret}`) {
-      return jsonError("Unauthorized.", 401);
-    }
+  if (!secret) {
+    return jsonError("Cron is not configured (set CRON_SECRET).", 503);
+  }
+  const auth = req.headers.get("authorization");
+  if (auth !== `Bearer ${secret}`) {
+    return jsonError("Unauthorized.", 401);
   }
 
   const days = Number(process.env.ANALYTICS_RETENTION_DAYS || "365");

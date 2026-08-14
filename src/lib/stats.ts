@@ -357,7 +357,7 @@ export async function getTopLinks(
     SELECT l.id, l.slug, l.title, l."destinationUrl",
            COUNT(e.id) FILTER (WHERE e."isBot" = false)::bigint AS clicks,
            COUNT(DISTINCT e."visitorHash") FILTER (WHERE e."isBot" = false)::bigint AS unique_visitors,
-           MAX(e."timestamp") AS last_click
+           MAX(e."timestamp") FILTER (WHERE e."isBot" = false) AS last_click
     FROM "links" l
     LEFT JOIN "link_events" e ON e."linkId" = l.id
     WHERE l."userId" = ${userId}

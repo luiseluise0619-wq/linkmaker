@@ -31,6 +31,15 @@ import {
 } from "@/lib/actions/links";
 import { appUrl, cn } from "@/lib/utils";
 
+/** Convert a stored UTC ISO instant to a `datetime-local` value in the
+ * viewer's local timezone (YYYY-MM-DDTHH:mm). */
+function toLocalInputValue(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
+}
+
 export interface LinkFormData {
   id: string;
   slug: string;
@@ -89,6 +98,21 @@ export function LinkForm({
     ok: false,
   });
 
+  // Expiration is edited in the user's local time via a datetime-local input,
+  // but stored/submitted as an absolute UTC instant. We convert the stored UTC
+  // value to a local wall-clock string for display, and submit an unambiguous
+  // ISO instant (with offset) via a hidden field, so the expiry never drifts.
+  // Initialize with the deterministic UTC slice so server and client render
+  // identically (no hydration mismatch), then convert to the viewer's local
+  // time after mount.
+  const [expiresLocal, setExpiresLocal] = React.useState(
+    initial?.expiresAt ? initial.expiresAt.slice(0, 16) : "",
+  );
+  React.useEffect(() => {
+    if (initial?.expiresAt) setExpiresLocal(toLocalInputValue(initial.expiresAt));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [showUtm, setShowUtm] = React.useState(
     !!(
       initial?.utmSource ||
@@ -117,11 +141,14 @@ export function LinkForm({
     if (mode === "create") {
       const data = state.data as { id: string; slug: string } | undefined;
       if (data) {
-        toast("Link created", "success");
+        // On success `state.error` (if present) is a non-fatal warning.
+        if (state.error) toast(state.error, "error");
+        else toast("Link created", "success");
         onCreated?.(data);
       }
     } else {
-      toast("Changes saved", "success");
+      if (state.error) toast(state.error, "error");
+      else toast("Changes saved", "success");
       const data = state.data as { slug: string } | undefined;
       if (data) router.push(`/dashboard/links/${data.slug}`);
       router.refresh();
@@ -253,12 +280,16 @@ export function LinkForm({
             <Label htmlFor="expiresAt">Expiration date (optional)</Label>
             <Input
               id="expiresAt"
-              name="expiresAt"
               type="datetime-local"
-              defaultValue={
-                initial?.expiresAt
-                  ? new Date(initial.expiresAt).toISOString().slice(0, 16)
-                  : ""
+              value={expiresLocal}
+              onChange={(e) => setExpiresLocal(e.target.value)}
+            />
+            {/* Submit an unambiguous UTC instant, not the local wall-clock. */}
+            <input
+              type="hidden"
+              name="expiresAt"
+              value={
+                expiresLocal ? new Date(expiresLocal).toISOString() : ""
               }
             />
           </div>
@@ -399,7 +430,7 @@ export function LinkForm({
         </Card>
       )}
 
-      {state.error && (
+      {!state.ok && state.error && (
         <div className="flex items-start gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{state.error}</span>

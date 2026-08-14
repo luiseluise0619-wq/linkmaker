@@ -25,6 +25,25 @@ export interface ActionResult<T = unknown> {
   data?: T;
 }
 
+/** Synchronous, pre-upload validation of an image file. Returns an error
+ * message, or null if the file is acceptable. */
+function validateImageFile(file: File): string | null {
+  if (!isStorageConfigured()) {
+    return "Image storage is not configured. Set BLOB_READ_WRITE_TOKEN.";
+  }
+  if (
+    !ALLOWED_IMAGE_TYPES.includes(
+      file.type as (typeof ALLOWED_IMAGE_TYPES)[number],
+    )
+  ) {
+    return "Unsupported image type.";
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return "Image exceeds the 5 MB limit.";
+  }
+  return null;
+}
+
 function formToObject(formData: FormData): Record<string, string> {
   const obj: Record<string, string> = {};
   for (const [k, v] of formData.entries()) {
@@ -42,21 +61,36 @@ export async function createLinkAction(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.errors[0]?.message };
   }
-  try {
-    const link = await createLink(user.id, parsed.data);
 
-    // Optional image upload in the same submission.
-    const file = formData.get("image");
-    if (file instanceof File && file.size > 0) {
-      await attachImage(user.id, link.id, file, formData.get("imageAlt"));
-    }
-    revalidatePath("/dashboard/links");
-    revalidatePath("/dashboard");
-    return { ok: true, data: { id: link.id, slug: link.slug } };
+  // Validate the image up front so we never create a link and *then* fail.
+  const file = formData.get("image");
+  const hasImage = file instanceof File && file.size > 0;
+  if (hasImage) {
+    const imageError = validateImageFile(file);
+    if (imageError) return { ok: false, error: imageError };
+  }
+
+  let link;
+  try {
+    link = await createLink(user.id, parsed.data);
   } catch (e) {
     if (e instanceof LinkError) return { ok: false, error: e.message };
     return { ok: false, error: "Could not create the link." };
   }
+
+  // The link exists now; a later storage failure must not report the whole
+  // creation as failed (it would strand a slug). Surface it as a warning.
+  let warning: string | undefined;
+  if (hasImage) {
+    try {
+      await attachImage(user.id, link.id, file, formData.get("imageAlt"));
+    } catch {
+      warning = "Link created, but the image could not be uploaded.";
+    }
+  }
+  revalidatePath("/dashboard/links");
+  revalidatePath("/dashboard");
+  return { ok: true, error: warning, data: { id: link.id, slug: link.slug } };
 }
 
 export async function updateLinkAction(
@@ -71,21 +105,34 @@ export async function updateLinkAction(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.errors[0]?.message };
   }
-  try {
-    const link = await updateLink(user.id, id, parsed.data);
 
-    const file = formData.get("image");
-    if (file instanceof File && file.size > 0) {
-      await attachImage(user.id, id, file, formData.get("imageAlt"));
-    }
-    revalidatePath("/dashboard/links");
-    revalidatePath(`/dashboard/links/${link.slug}`);
-    revalidatePath("/dashboard");
-    return { ok: true, data: { slug: link.slug } };
+  const file = formData.get("image");
+  const hasImage = file instanceof File && file.size > 0;
+  if (hasImage) {
+    const imageError = validateImageFile(file);
+    if (imageError) return { ok: false, error: imageError };
+  }
+
+  let link;
+  try {
+    link = await updateLink(user.id, id, parsed.data);
   } catch (e) {
     if (e instanceof LinkError) return { ok: false, error: e.message };
     return { ok: false, error: "Could not update the link." };
   }
+
+  let warning: string | undefined;
+  if (hasImage) {
+    try {
+      await attachImage(user.id, id, file, formData.get("imageAlt"));
+    } catch {
+      warning = "Changes saved, but the image could not be uploaded.";
+    }
+  }
+  revalidatePath("/dashboard/links");
+  revalidatePath(`/dashboard/links/${link.slug}`);
+  revalidatePath("/dashboard");
+  return { ok: true, error: warning, data: { slug: link.slug } };
 }
 
 export async function setStatusAction(id: string, disabled: boolean) {
@@ -120,22 +167,6 @@ async function attachImage(
   file: File,
   alt: FormDataEntryValue | null,
 ) {
-  if (!isStorageConfigured()) {
-    throw new LinkError(
-      "Image storage is not configured. Set BLOB_READ_WRITE_TOKEN.",
-      400,
-    );
-  }
-  if (
-    !ALLOWED_IMAGE_TYPES.includes(
-      file.type as (typeof ALLOWED_IMAGE_TYPES)[number],
-    )
-  ) {
-    throw new LinkError("Unsupported image type.", 422);
-  }
-  if (file.size > MAX_IMAGE_BYTES) {
-    throw new LinkError("Image exceeds the 5 MB limit.", 422);
-  }
   // Remove any previous image first.
   const existing = await prisma.linkImage.findUnique({ where: { linkId } });
   if (existing?.url) await deleteImage(existing.url);
