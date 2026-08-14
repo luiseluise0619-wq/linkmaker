@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BreakdownList } from "@/components/charts/breakdown-list";
+import { TimelineChart } from "@/components/charts/timeline-chart";
 import { EmptyState } from "@/components/dashboard/empty-state";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -120,7 +121,25 @@ export default async function DashboardPage() {
         shown because impressions are not measured.
       </p>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
+      <Card className="mt-6">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Clicks — last 30 days</CardTitle>
+            <CardDescription>Human clicks per day (UTC).</CardDescription>
+          </div>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/dashboard/analytics">
+              Full analytics
+              <ArrowUpRight />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <TimelineChart data={data.timeline} />
+        </CardContent>
+      </Card>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
