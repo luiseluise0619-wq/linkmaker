@@ -123,7 +123,13 @@ async function main() {
       const isBot = randomInt(0, 100) < 8;
       const referrer = pick(REFERRERS);
       const device = pick(DEVICES);
-      const visitorSeed = `${link.id}-${randomInt(0, 60)}-${daysAgo}`;
+      // Mirror the real hashing model: a visitor hash is stable for a given
+      // visitor within a single day and changes across days. Using the actual
+      // date bucket (not daysAgo) keeps the seed consistent with production,
+      // so unique/returning estimates behave realistically.
+      const dateKey = date.toISOString().slice(0, 10);
+      const visitorIdx = randomInt(0, Math.max(5, Math.floor(total / 4)));
+      const visitorSeed = `${link.id}:${visitorIdx}:${dateKey}`;
       events.push({
         linkId: link.id,
         timestamp: ts,

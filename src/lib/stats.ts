@@ -91,8 +91,11 @@ async function distinctVisitorCount(
 }
 
 /**
- * Returning visitors = distinct visitorHash values that appear on 2+ distinct
- * days. This is an estimate (hashes rotate daily), labeled as such in the UI.
+ * Returning visitors = privacy-preserving visitor hashes that recorded more
+ * than one click. Because the hash rotates every day (it embeds the date, by
+ * design, so visitors can't be tracked across days), this necessarily counts
+ * repeat clicks within a single day. It is an ESTIMATE and a lower bound on
+ * true returning visitors — labeled as such in the UI.
  */
 async function returningVisitorCount(linkIds: string[]): Promise<number> {
   if (!linkIds.length) return 0;
@@ -104,7 +107,7 @@ async function returningVisitorCount(linkIds: string[]): Promise<number> {
         AND "isBot" = false
         AND "visitorHash" IS NOT NULL
       GROUP BY "visitorHash"
-      HAVING COUNT(DISTINCT "date") > 1
+      HAVING COUNT(*) > 1
     ) t
   `;
   return Number(rows[0]?.count ?? 0);
@@ -172,8 +175,13 @@ export async function getTimeline(
   if (!linkIds.length) return [];
   const since = startOf(range);
   const hourly = range === "24h";
+  // "timestamp" is stored as a naive UTC value (timestamp without time zone).
+  // Truncating it directly keeps bucketing in UTC and independent of the
+  // database session's timezone, so buckets always align with the UTC keys
+  // used for gap-filling below. (An AT TIME ZONE cast would truncate in the
+  // session TZ and misalign the hourly chart on non-UTC hosted databases.)
   const rows = await prisma.$queryRaw<{ bucket: Date; clicks: bigint }[]>`
-    SELECT date_trunc(${hourly ? "hour" : "day"}, "timestamp" AT TIME ZONE 'UTC') AS bucket,
+    SELECT date_trunc(${hourly ? "hour" : "day"}, "timestamp") AS bucket,
            COUNT(*)::bigint AS clicks
     FROM "link_events"
     WHERE "linkId" = ANY(${linkIds})
