@@ -11,6 +11,10 @@ no mock data and no invasive fingerprinting.
 
 ## Core features
 
+- **No-account link creation** — anyone can shorten a URL from the landing
+  page without signing up. Anonymous links are owned by a system account and
+  managed through a private, unguessable stats link (`/s/<slug>?t=…`) instead
+  of a login. Sign up to keep, edit and organize links permanently.
 - **Editable short links** — the short URL (`/go/<slug>`) is a permanent
   abstraction over the destination. Change where a link points anytime without
   breaking the URL, QR code or historical analytics.
@@ -190,6 +194,9 @@ codes. All endpoints require authentication and enforce per-user authorization.
 | `GET` | `/api/links/[id]/analytics` | Aggregated analytics for a link. |
 | `GET` | `/api/links/[id]/qr` | PNG QR code (`?download=1` to download). |
 | `GET` | `/go/[slug]` | Public redirect + analytics collection. |
+| `POST` | `/api/public/links` | **No-account** link creation (rate-limited); returns `manageUrl`. |
+| `GET` | `/api/qr/[slug]` | Public PNG QR code for a slug (`?download=1`). |
+| `GET` | `/s/[slug]?t=…` | Token-gated analytics for an anonymous link. |
 | `GET` | `/api/cron/prune` | Retention job (Bearer `CRON_SECRET`). |
 
 ---

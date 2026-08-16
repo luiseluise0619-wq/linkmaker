@@ -68,6 +68,11 @@ model Link {
   status         LinkStatus @default(ACTIVE)
   expiresAt      DateTime?
 
+  // Anonymous (no-account) links are owned by a system "public" user and are
+  // managed via this unguessable token instead of a login session. Null for
+  // links that belong to a real account.
+  manageToken String? @unique
+
   // UTM parameters appended to the destination on redirect.
   utmSource   String?
   utmMedium   String?

@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PublicLinkCreator } from "@/components/public-link-creator";
 
 const features = [
   {
@@ -104,31 +105,12 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Schematic short-link illustration (not live metrics) */}
-        <div className="mx-auto mt-16 max-w-3xl">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-                <div className="text-left">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Destination (editable)
-                  </p>
-                  <p className="mt-1 font-mono text-sm">
-                    https://example.com/product-a
-                  </p>
-                </div>
-                <ArrowRight className="hidden h-5 w-5 text-muted-foreground sm:block" />
-                <div className="text-left">
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Short link (permanent)
-                  </p>
-                  <p className="mt-1 font-mono text-sm text-primary">
-                    linkmaker.app/go/summer2026
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Live, working demo — create a real short link with no account. */}
+        <div className="mx-auto mt-14 max-w-2xl">
+          <p className="mb-3 text-center text-sm font-medium text-muted-foreground">
+            Try it now — no sign-up required
+          </p>
+          <PublicLinkCreator />
         </div>
       </section>
 

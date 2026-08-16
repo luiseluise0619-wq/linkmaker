@@ -82,6 +82,11 @@ export const updateLinkSchema = z.object({
   utmContent: clearableUtmField,
 });
 
+export const createPublicLinkSchema = z.object({
+  destinationUrl: z.string().trim().min(1, "Destination URL is required."),
+  slug: slugSchema.optional().or(z.literal("").transform(() => undefined)),
+});
+
 export const createCampaignSchema = z.object({
   name: z.string().trim().min(1, "Name is required.").max(120),
   description: optionalTrimmedString(500),

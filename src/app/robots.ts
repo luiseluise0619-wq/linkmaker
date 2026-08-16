@@ -7,8 +7,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // Don't index authenticated areas or the redirect endpoint.
-      disallow: ["/dashboard", "/go/", "/api/"],
+      // Don't index authenticated areas, the redirect endpoint, or the
+      // token-gated anonymous stats pages.
+      disallow: ["/dashboard", "/go/", "/api/", "/s/"],
     },
     sitemap: `${base}/sitemap.xml`,
     host: base,

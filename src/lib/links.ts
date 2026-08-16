@@ -1,9 +1,13 @@
 import "server-only";
+import { randomBytes } from "crypto";
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
 import { isValidSlug, randomSlug } from "./slug";
 import { validateDestinationUrl } from "./url";
 import type { CreateLinkInput, UpdateLinkInput } from "./validations";
+
+/** System account that owns anonymously-created (no-login) links. */
+export const PUBLIC_USER_ID = "public-user";
 
 export class LinkError extends Error {
   constructor(
@@ -12,6 +16,25 @@ export class LinkError extends Error {
   ) {
     super(message);
   }
+}
+
+function newManageToken(): string {
+  return randomBytes(24).toString("base64url");
+}
+
+/** Ensure the system public user exists (created by migration; this is a
+ * defensive fallback for environments where it may be missing). */
+async function ensurePublicUser() {
+  await prisma.user.upsert({
+    where: { id: PUBLIC_USER_ID },
+    update: {},
+    create: {
+      id: PUBLIC_USER_ID,
+      email: "public@linkmaker.local",
+      name: "Public",
+      passwordHash: "!disabled-no-login!",
+    },
+  });
 }
 
 async function ensureCampaignOwned(userId: string, campaignId: string) {
@@ -87,6 +110,70 @@ export async function createLink(userId: string, input: CreateLinkInput) {
     }
     throw e;
   }
+}
+
+export interface CreatePublicLinkInput {
+  destinationUrl: string;
+  slug?: string;
+}
+
+/**
+ * Create a link with no account. Owned by the system public user and managed
+ * via an unguessable token instead of a login session.
+ */
+export async function createPublicLink(input: CreatePublicLinkInput) {
+  const dest = validateDestinationUrl(input.destinationUrl);
+  if (!dest.ok) throw new LinkError(dest.error, 422);
+
+  let slug: string;
+  if (input.slug) {
+    if (!isValidSlug(input.slug)) {
+      throw new LinkError("That slug is invalid or reserved.", 422);
+    }
+    const existing = await prisma.link.findUnique({
+      where: { slug: input.slug },
+      select: { id: true },
+    });
+    if (existing) throw new LinkError("That slug is already taken.", 409);
+    slug = input.slug;
+  } else {
+    slug = await generateUniqueSlug();
+  }
+
+  await ensurePublicUser();
+  const manageToken = newManageToken();
+
+  try {
+    const link = await prisma.link.create({
+      data: {
+        userId: PUBLIC_USER_ID,
+        slug,
+        destinationUrl: dest.url,
+        manageToken,
+      },
+      select: { id: true, slug: true, destinationUrl: true, manageToken: true },
+    });
+    return link;
+  } catch (e) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      throw new LinkError("That slug is already taken.", 409);
+    }
+    throw e;
+  }
+}
+
+/** Fetch an anonymous link for its management/stats view, gated by token. */
+export async function getPublicLinkByToken(slug: string, token: string) {
+  if (!token) return null;
+  const link = await prisma.link.findUnique({
+    where: { slug },
+    include: { image: true },
+  });
+  if (!link || !link.manageToken || link.manageToken !== token) return null;
+  return link;
 }
 
 export async function getOwnedLink(userId: string, id: string) {
