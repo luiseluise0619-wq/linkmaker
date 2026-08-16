@@ -15,9 +15,11 @@ import { logoutAction } from "@/lib/actions/auth";
 export function UserMenu({
   name,
   email,
+  isGuest = false,
 }: {
   name: string | null;
   email: string;
+  isGuest?: boolean;
 }) {
   const initial = (name || email || "?").charAt(0).toUpperCase();
   return (
@@ -37,13 +39,24 @@ export function UserMenu({
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col">
-            <span className="truncate">{name || "Account"}</span>
+            <span className="truncate">{isGuest ? "Guest" : name || "Account"}</span>
             <span className="truncate text-xs font-normal text-muted-foreground">
-              {email}
+              {isGuest ? "Guest account · not saved" : email}
             </span>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {isGuest && (
+          <>
+            <DropdownMenuItem asChild>
+              <a href="/register">
+                <UserIcon />
+                Secure my account
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem asChild>
           <a href="/dashboard/settings">
             <UserIcon />

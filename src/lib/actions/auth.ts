@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import {
   createSession,
   destroySession,
+  getSessionUser,
   hashPassword,
   verifyPassword,
 } from "@/lib/auth";
@@ -28,12 +29,26 @@ export async function registerAction(
     return { error: parsed.error.errors[0]?.message ?? "Invalid input." };
   }
   const { name, email, password } = parsed.data;
+  const passwordHash = await hashPassword(password);
+
+  // If the visitor is currently a guest, UPGRADE that account in place so all
+  // of their existing links, campaigns and analytics are preserved.
+  const session = await getSessionUser();
   try {
-    const user = await prisma.user.create({
-      data: { name, email, passwordHash: await hashPassword(password) },
-      select: { id: true, email: true, name: true },
-    });
-    await createSession(user);
+    if (session?.isGuest) {
+      const user = await prisma.user.update({
+        where: { id: session.id },
+        data: { name, email, passwordHash, isGuest: false },
+        select: { id: true, email: true, name: true, isGuest: true },
+      });
+      await createSession(user);
+    } else {
+      const user = await prisma.user.create({
+        data: { name, email, passwordHash, isGuest: false },
+        select: { id: true, email: true, name: true, isGuest: true },
+      });
+      await createSession(user);
+    }
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return { error: "An account with that email already exists." };
@@ -63,7 +78,12 @@ export async function loginAction(
   if (!user || !ok) {
     return { error: "Invalid email or password." };
   }
-  await createSession({ id: user.id, email: user.email, name: user.name });
+  await createSession({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    isGuest: user.isGuest,
+  });
   redirect("/dashboard");
 }
 

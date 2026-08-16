@@ -40,9 +40,25 @@ export default async function SettingsPage() {
             <CardDescription>Your profile information.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Row label="Name" value={user.name || "—"} />
-            <Separator />
-            <Row label="Email" value={user.email} />
+            {user.isGuest ? (
+              <>
+                <Row label="Account type" value="Guest (not saved)" />
+                <Separator />
+                <p className="text-sm text-muted-foreground">
+                  Your links live in this browser session only. Add an email
+                  and password to keep them and sign in from anywhere.
+                </p>
+                <Button asChild size="sm">
+                  <a href="/register">Secure my account</a>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Row label="Name" value={user.name || "—"} />
+                <Separator />
+                <Row label="Email" value={user.email} />
+              </>
+            )}
           </CardContent>
         </Card>
 

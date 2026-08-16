@@ -9,7 +9,8 @@ export default async function AuthLayout({
   children: React.ReactNode;
 }) {
   const user = await getSessionUser();
-  if (user) redirect("/dashboard");
+  // Full accounts skip auth pages; guests may visit /register to upgrade.
+  if (user && !user.isGuest) redirect("/dashboard");
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">

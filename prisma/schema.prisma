@@ -32,6 +32,10 @@ model User {
   email        String     @unique
   name         String?
   passwordHash String
+  // A guest account is auto-provisioned for a browser that creates links
+  // without signing up. It has a session but no usable password until the
+  // visitor upgrades it by setting an email + password.
+  isGuest      Boolean    @default(false)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 

@@ -8,6 +8,7 @@ import {
   ArrowRight,
   ExternalLink,
   Info,
+  LayoutDashboard,
   Plus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -55,6 +56,12 @@ export function PublicLinkCreator() {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Button asChild>
+              <Link href="/dashboard">
+                <LayoutDashboard />
+                Open dashboard
+              </Link>
+            </Button>
             <CopyButton value={shortUrl} label="Copy" />
             <Button asChild variant="outline">
               <a href={shortUrl} target="_blank" rel="noopener noreferrer">
@@ -68,6 +75,10 @@ export function PublicLinkCreator() {
               </a>
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Your link is saved to a dashboard where you can edit the
+            destination, track analytics and manage all your links.
+          </p>
 
           <div className="flex justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -109,10 +120,11 @@ export function PublicLinkCreator() {
               Create another
             </Button>
             <p className="text-xs text-muted-foreground">
-              Want to keep all your links?{" "}
+              Using a guest account.{" "}
               <Link href="/register" className="font-medium text-foreground hover:underline">
-                Create an account
-              </Link>
+                Add email &amp; password
+              </Link>{" "}
+              to secure it &amp; access from other devices.
             </p>
           </div>
         </CardContent>

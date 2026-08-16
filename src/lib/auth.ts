@@ -1,4 +1,5 @@
 import "server-only";
+import { randomUUID } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
@@ -22,6 +23,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string | null;
+  isGuest: boolean;
 }
 
 export async function hashPassword(password: string): Promise<string> {
@@ -36,7 +38,11 @@ export async function verifyPassword(
 }
 
 async function createToken(user: SessionUser): Promise<string> {
-  return new SignJWT({ email: user.email, name: user.name })
+  return new SignJWT({
+    email: user.email,
+    name: user.name,
+    isGuest: user.isGuest,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(user.id)
     .setIssuedAt()
@@ -70,6 +76,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       id: payload.sub,
       email: (payload.email as string) ?? "",
       name: (payload.name as string) ?? null,
+      isGuest: (payload.isGuest as boolean) ?? false,
     };
   } catch {
     return null;
@@ -92,7 +99,27 @@ export async function requireDbUser(): Promise<SessionUser | null> {
   if (!session) return null;
   const user = await prisma.user.findUnique({
     where: { id: session.id },
-    select: { id: true, email: true, name: true },
+    select: { id: true, email: true, name: true, isGuest: true },
   });
+  return user;
+}
+
+/**
+ * Auto-provision a guest account (no password) and start a session for it, so
+ * a visitor gets a full dashboard without signing up. They can later upgrade
+ * the guest into a real account by setting an email + password.
+ */
+export async function createGuestUserAndSession(): Promise<SessionUser> {
+  const suffix = randomUUID();
+  const user = await prisma.user.create({
+    data: {
+      email: `guest_${suffix}@guest.local`,
+      name: "Guest",
+      passwordHash: "!disabled-guest!",
+      isGuest: true,
+    },
+    select: { id: true, email: true, name: true, isGuest: true },
+  });
+  await createSession(user);
   return user;
 }

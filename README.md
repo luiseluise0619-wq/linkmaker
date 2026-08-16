@@ -11,10 +11,13 @@ no mock data and no invasive fingerprinting.
 
 ## Core features
 
-- **No-account link creation** — anyone can shorten a URL from the landing
-  page without signing up. Anonymous links are owned by a system account and
-  managed through a private, unguessable stats link (`/s/<slug>?t=…`) instead
-  of a login. Sign up to keep, edit and organize links permanently.
+- **No-account link creation with a full dashboard** — anyone can shorten a
+  URL from the landing page without signing up. A **guest account** is
+  auto-provisioned for their browser session, so they immediately get the full
+  dashboard (links table, analytics, editing, campaigns) — each guest sees only
+  their own links. Registering later **upgrades the guest in place**, keeping
+  all of their links and analytics. Links also expose a private, token-gated
+  stats page (`/s/<slug>?t=…`) that can be shared read-only.
 - **Editable short links** — the short URL (`/go/<slug>`) is a permanent
   abstraction over the destination. Change where a link points anytime without
   breaking the URL, QR code or historical analytics.
