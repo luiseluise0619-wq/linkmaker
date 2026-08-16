@@ -5,10 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Base URL of the app, without trailing slash. */
+/** Base URL of the app, without trailing slash.
+ *
+ * Prefers NEXT_PUBLIC_APP_URL (works on both server and client). On Vercel it
+ * falls back to the auto-provided deployment domain, so no env var is needed to
+ * get working absolute URLs server-side. */
 export function appUrl(): string {
-  const url = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  return url.replace(/\/+$/, "");
+  const explicit = process.env.NEXT_PUBLIC_APP_URL;
+  if (explicit) return explicit.replace(/\/+$/, "");
+
+  const vercel =
+    process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel.replace(/\/+$/, "")}`;
+
+  return "http://localhost:3000";
 }
 
 /** Build the public short URL for a slug. */

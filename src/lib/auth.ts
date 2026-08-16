@@ -5,18 +5,14 @@ import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { getAuthSecret } from "./secrets";
 
 const COOKIE_NAME = "lm_session";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
-function getSecret(): Uint8Array {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret || secret.length < 16) {
-    throw new Error(
-      "AUTH_SECRET is not set or too short. Set a strong secret in your environment.",
-    );
-  }
-  return new TextEncoder().encode(secret);
+async function getSecret(): Promise<Uint8Array> {
+  // Uses AUTH_SECRET when set, otherwise a DB-managed generated secret.
+  return new TextEncoder().encode(await getAuthSecret());
 }
 
 export interface SessionUser {
@@ -47,7 +43,7 @@ async function createToken(user: SessionUser): Promise<string> {
     .setSubject(user.id)
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE_SECONDS}s`)
-    .sign(getSecret());
+    .sign(await getSecret());
 }
 
 export async function createSession(user: SessionUser): Promise<void> {
@@ -70,7 +66,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const token = cookies().get(COOKIE_NAME)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, getSecret());
+    const { payload } = await jwtVerify(token, await getSecret());
     if (!payload.sub) return null;
     return {
       id: payload.sub,

@@ -10,6 +10,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Key/value store for server-managed configuration (e.g. auto-generated
+/// signing secrets), so the app can run with only a database configured.
+model Setting {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
 enum LinkStatus {
   ACTIVE
   DISABLED

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { collectEvent } from "@/lib/analytics";
+import { getAnalyticsSalt } from "@/lib/secrets";
 import { applyUtm } from "@/lib/url";
 import { getClientIp, getGeo } from "@/lib/request";
 import { rateLimit } from "@/lib/ratelimit";
@@ -70,6 +71,7 @@ export async function GET(
       ip,
       isQr,
       linkId: link.id,
+      salt: await getAnalyticsSalt(),
     });
     await prisma.linkEvent.create({
       data: {

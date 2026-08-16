@@ -6,33 +6,40 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Lightweight health/diagnostics endpoint. Reports whether the required
- * environment variables are present and whether the database is reachable and
- * migrated. Safe to expose: it returns booleans, never secret values.
+ * Health/diagnostics endpoint. The only hard requirement is a reachable,
+ * migrated database — signing secrets and the app URL are auto-managed when
+ * their env vars are absent. Returns booleans only, never secret values.
  */
 export async function GET() {
-  const env = {
-    DATABASE_URL: !!process.env.DATABASE_URL,
-    AUTH_SECRET: (process.env.AUTH_SECRET?.length ?? 0) >= 16,
-    ANALYTICS_SALT: !!process.env.ANALYTICS_SALT,
-    NEXT_PUBLIC_APP_URL: !!process.env.NEXT_PUBLIC_APP_URL,
-  };
-
   let db = false;
   let migrated = false;
   let dbError: string | null = null;
   try {
     await prisma.$queryRaw`SELECT 1`;
     db = true;
-    // If the core table exists, migrations have been applied.
-    await prisma.user.count();
+    await prisma.user.count(); // succeeds only if migrations have been applied
     migrated = true;
   } catch (e) {
-    dbError = e instanceof Error ? e.message.split("\n")[0] : "unknown error";
+    dbError =
+      e instanceof Error ? e.message.split("\n").slice(0, 2).join(" ") : "error";
   }
 
-  const ok = db && migrated && Object.values(env).every(Boolean);
-  const body = { ok, env, db, migrated, dbError };
-  if (ok) return jsonOk(body);
-  return NextResponse.json({ ok: false, data: body }, { status: 503 });
+  const config = {
+    // Required.
+    database: db,
+    migrationsApplied: migrated,
+    // Optional overrides (auto-managed when unset — informational only).
+    authSecretFromEnv: (process.env.AUTH_SECRET?.length ?? 0) >= 16,
+    analyticsSaltFromEnv: !!process.env.ANALYTICS_SALT,
+    appUrlConfigured:
+      !!process.env.NEXT_PUBLIC_APP_URL ||
+      !!process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+      !!process.env.VERCEL_URL,
+  };
+
+  const ok = db && migrated;
+  const body = { ok, config, dbError };
+  return ok
+    ? jsonOk(body)
+    : NextResponse.json({ ok: false, data: body }, { status: 503 });
 }

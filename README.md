@@ -113,18 +113,25 @@ Open http://localhost:3000.
 
 ## Environment variables
 
+**Only `DATABASE_URL` is required.** Everything else is optional — the app
+auto-detects its URL on Vercel and auto-manages its signing secret and salt in
+the database when they aren't set.
+
 | Variable | Required | Description |
 | --- | --- | --- |
-| `DATABASE_URL` | ✅ | PostgreSQL connection string. Use a pooled URL on serverless. |
-| `NEXT_PUBLIC_APP_URL` | ✅ | Public base URL (no trailing slash). Used to build short URLs & QR codes. |
-| `AUTH_SECRET` | ✅ | Secret used to sign session JWTs. Use a long random value. |
-| `ANALYTICS_SALT` | ✅ | Salt for privacy-preserving visitor-hash estimation. |
-| `BLOB_READ_WRITE_TOKEN` | ⛔️ optional | Vercel Blob token. Required only for image uploads. |
-| `ANALYTICS_RETENTION_DAYS` | ⛔️ optional | Retention window in days (default `365`). |
-| `CRON_SECRET` | ⛔️ optional | Protects the retention cron endpoint. |
+| `DATABASE_URL` | ✅ | PostgreSQL connection string. On Vercel, connecting a Postgres store injects it automatically. |
+| `NEXT_PUBLIC_APP_URL` | optional | Public base URL. Falls back to the Vercel deployment domain. Set to your custom domain in production. |
+| `AUTH_SECRET` | optional | Session-signing secret. Auto-generated and stored in the DB if unset; set it to control rotation. |
+| `ANALYTICS_SALT` | optional | Visitor-hash salt. Auto-generated and stored in the DB if unset. |
+| `BLOB_READ_WRITE_TOKEN` | optional | Vercel Blob token. Required only for image uploads. |
+| `ANALYTICS_RETENTION_DAYS` | optional | Retention window in days (default `365`). |
+| `CRON_SECRET` | optional | Protects the retention cron endpoint. |
 
-Secrets are read from the environment only — nothing is hardcoded, and no
-service-role/storage credentials are ever exposed to the browser.
+Secrets are never hardcoded and never exposed to the browser. Auto-managed
+secrets live only in your database. For production, setting `AUTH_SECRET`
+explicitly is still recommended so it can be rotated independently.
+
+You can check configuration at any time via `GET /api/health`.
 
 ---
 

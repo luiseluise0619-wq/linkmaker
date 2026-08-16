@@ -63,8 +63,9 @@ export function computeVisitorHash(params: {
   userAgent: string | null;
   linkId: string;
   date: Date;
+  salt: string;
 }): string | null {
-  const salt = process.env.ANALYTICS_SALT;
+  const salt = params.salt;
   if (!salt) return null;
   if (!params.ip && !params.userAgent) return null;
   const dayKey = params.date.toISOString().slice(0, 10);
@@ -87,6 +88,7 @@ export interface CollectInput {
   ip: string | null;
   isQr: boolean;
   linkId: string;
+  salt: string;
 }
 
 export function collectEvent(input: CollectInput): CollectedEvent {
@@ -121,6 +123,7 @@ export function collectEvent(input: CollectInput): CollectedEvent {
       userAgent: input.userAgentHeader,
       linkId: input.linkId,
       date,
+      salt: input.salt,
     }),
     timestamp: now,
     date,
