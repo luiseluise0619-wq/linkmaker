@@ -10,6 +10,7 @@ import {
   LinkError,
 } from "@/lib/links";
 import { prisma } from "@/lib/prisma";
+import { shortUrl } from "@/lib/utils";
 import { createLinkSchema, updateLinkSchema } from "@/lib/validations";
 import {
   ALLOWED_IMAGE_TYPES,
@@ -55,7 +56,7 @@ function formToObject(formData: FormData): Record<string, string> {
 export async function createLinkAction(
   _prev: ActionResult,
   formData: FormData,
-): Promise<ActionResult<{ id: string; slug: string }>> {
+): Promise<ActionResult<{ id: string; slug: string; shortUrl: string }>> {
   const user = await requireUser();
   const parsed = createLinkSchema.safeParse(formToObject(formData));
   if (!parsed.success) {
@@ -90,7 +91,11 @@ export async function createLinkAction(
   }
   revalidatePath("/dashboard/links");
   revalidatePath("/dashboard");
-  return { ok: true, error: warning, data: { id: link.id, slug: link.slug } };
+  return {
+    ok: true,
+    error: warning,
+    data: { id: link.id, slug: link.slug, shortUrl: shortUrl(link.slug) },
+  };
 }
 
 export async function updateLinkAction(

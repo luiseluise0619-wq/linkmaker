@@ -29,7 +29,7 @@ import {
   removeImageAction,
   type ActionResult,
 } from "@/lib/actions/links";
-import { appUrl, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 /** Convert a stored UTC ISO instant to a `datetime-local` value in the
  * viewer's local timezone (YYYY-MM-DDTHH:mm). */
@@ -68,7 +68,7 @@ interface LinkFormProps {
   campaigns: Campaign[];
   storageEnabled: boolean;
   initial?: LinkFormData;
-  onCreated?: (data: { id: string; slug: string }) => void;
+  onCreated?: (data: { id: string; slug: string; shortUrl: string }) => void;
 }
 
 function SubmitButton({ mode }: { mode: "create" | "edit" }) {
@@ -139,7 +139,9 @@ export function LinkForm({
   React.useEffect(() => {
     if (!state.ok) return;
     if (mode === "create") {
-      const data = state.data as { id: string; slug: string } | undefined;
+      const data = state.data as
+        | { id: string; slug: string; shortUrl: string }
+        | undefined;
       if (data) {
         // On success `state.error` (if present) is a non-fatal warning.
         if (state.error) toast(state.error, "error");
@@ -211,7 +213,7 @@ export function LinkForm({
             <Label htmlFor="slug">Custom slug (optional)</Label>
             <div className="flex items-center gap-2">
               <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
-                {appUrl()}/go/
+                /go/
               </span>
               <Input
                 id="slug"

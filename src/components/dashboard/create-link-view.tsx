@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
 import { QrDialog } from "@/components/qr-dialog";
 import { LinkForm } from "@/components/dashboard/link-form";
-import { shortUrl } from "@/lib/utils";
 
 interface Campaign {
   id: string;
@@ -31,10 +30,13 @@ export function CreateLinkView({
   const [created, setCreated] = React.useState<{
     id: string;
     slug: string;
+    shortUrl: string;
   } | null>(null);
 
   if (created) {
-    const url = shortUrl(created.slug);
+    // Use the server-computed absolute URL (correct even when the app URL is
+    // only known server-side, e.g. on Vercel without NEXT_PUBLIC_APP_URL).
+    const url = created.shortUrl;
     return (
       <Card className="mx-auto max-w-2xl">
         <CardHeader>

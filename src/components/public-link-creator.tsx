@@ -20,7 +20,6 @@ import {
   createPublicLinkAction,
   type PublicLinkState,
 } from "@/lib/actions/public";
-import { appUrl } from "@/lib/utils";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -156,7 +155,7 @@ export function PublicLinkCreator() {
               </Label>
               <div className="flex items-center gap-2">
                 <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
-                  {appUrl()}/go/
+                  /go/
                 </span>
                 <Input
                   id="pub-slug"
