@@ -17,6 +17,27 @@ function unavailable(reason: string) {
   return NextResponse.redirect(url, 302);
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Retry a DB read a few times with short backoff. Serverless functions hitting
+ * a free-tier Postgres that has auto-suspended can see a transient connection
+ * error on the first query while the database wakes (~1s); a couple of retries
+ * turn that into a successful redirect instead of a failed one.
+ */
+async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await sleep(250 * (i + 1));
+    }
+  }
+  throw lastErr;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { slug: string } },
@@ -34,20 +55,36 @@ export async function GET(
   }
 
   // Single indexed lookup — the only query on the hot path before redirect.
-  const link = await prisma.link.findUnique({
-    where: { slug },
-    select: {
-      id: true,
-      destinationUrl: true,
-      status: true,
-      expiresAt: true,
-      utmSource: true,
-      utmMedium: true,
-      utmCampaign: true,
-      utmTerm: true,
-      utmContent: true,
-    },
-  });
+  // Retried so a waking (auto-suspended) database doesn't drop the redirect.
+  let link;
+  try {
+    link = await withRetry(() =>
+      prisma.link.findUnique({
+        where: { slug },
+        select: {
+          id: true,
+          destinationUrl: true,
+          status: true,
+          expiresAt: true,
+          utmSource: true,
+          utmMedium: true,
+          utmCampaign: true,
+          utmTerm: true,
+          utmContent: true,
+        },
+      }),
+    );
+  } catch {
+    // Database temporarily unreachable — ask the visitor to retry rather than
+    // showing a hard error. 503 + Retry-After, no caching.
+    return new NextResponse(
+      "This link is temporarily unavailable. Please try again in a moment.",
+      {
+        status: 503,
+        headers: { "Retry-After": "2", "Cache-Control": "no-store" },
+      },
+    );
+  }
 
   if (!link) return unavailable("notfound");
   if (link.status === "DISABLED") return unavailable("disabled");
