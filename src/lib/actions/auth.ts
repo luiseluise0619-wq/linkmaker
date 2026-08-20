@@ -29,11 +29,18 @@ export async function registerAction(
     return { error: parsed.error.errors[0]?.message ?? "Invalid input." };
   }
   const { name, email, password } = parsed.data;
+
+  // A fully-authenticated (non-guest) user must not register a second account.
+  // The layout guard only protects the page render, not this server action.
+  const session = await getSessionUser();
+  if (session && !session.isGuest) {
+    redirect("/dashboard");
+  }
+
   const passwordHash = await hashPassword(password);
 
   // If the visitor is currently a guest, UPGRADE that account in place so all
   // of their existing links, campaigns and analytics are preserved.
-  const session = await getSessionUser();
   try {
     if (session?.isGuest) {
       const user = await prisma.user.update({

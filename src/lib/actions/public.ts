@@ -6,6 +6,7 @@ import { createGuestUserAndSession, getSessionUser } from "@/lib/auth";
 import { createLink, LinkError } from "@/lib/links";
 import { prisma } from "@/lib/prisma";
 import { createPublicLinkSchema } from "@/lib/validations";
+import { validateDestinationUrl } from "@/lib/url";
 import { rateLimit } from "@/lib/ratelimit";
 import { appUrl, shortUrl } from "@/lib/utils";
 
@@ -55,6 +56,11 @@ export async function createPublicLinkAction(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.errors[0]?.message };
   }
+
+  // Validate the destination BEFORE provisioning anything, so invalid input
+  // never creates an orphaned guest account.
+  const dest = validateDestinationUrl(parsed.data.destinationUrl);
+  if (!dest.ok) return { ok: false, error: dest.error };
 
   // Reuse the current session, or provision a guest so they get a dashboard.
   let user = await getSessionUser();

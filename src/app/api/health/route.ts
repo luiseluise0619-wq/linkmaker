@@ -29,7 +29,7 @@ export async function GET() {
     database: db,
     migrationsApplied: migrated,
     // Optional overrides (auto-managed when unset — informational only).
-    authSecretFromEnv: (process.env.AUTH_SECRET?.length ?? 0) >= 16,
+    authSecretFromEnv: !!process.env.AUTH_SECRET,
     analyticsSaltFromEnv: !!process.env.ANALYTICS_SALT,
     appUrlConfigured:
       !!process.env.NEXT_PUBLIC_APP_URL ||

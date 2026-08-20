@@ -129,7 +129,14 @@ the database when they aren't set.
 
 Secrets are never hardcoded and never exposed to the browser. Auto-managed
 secrets live only in your database. For production, setting `AUTH_SECRET`
-explicitly is still recommended so it can be rotated independently.
+explicitly is recommended so it can be rotated independently.
+
+**Rotating the signing secret:** set (or change) `AUTH_SECRET` in your
+environment and redeploy. Rotating invalidates existing sessions (a one-time
+logout for everyone), which is expected. Do not edit the DB-managed secret row
+directly — warm instances cache it, so only an env change + redeploy rotates
+cleanly. Anonymous (guest) accounts are ephemeral and are pruned by the
+retention cron once they are old and have no real clicks.
 
 You can check configuration at any time via `GET /api/health`.
 

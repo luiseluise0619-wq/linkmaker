@@ -30,9 +30,42 @@ export async function GET(req: NextRequest) {
   }
 
   const cutoff = new Date(Date.now() - days * 86400000);
-  const result = await prisma.linkEvent.deleteMany({
+
+  // IMPORTANT: prune guest accounts BEFORE deleting old events, so the
+  // "has a real click" check below sees the full event history. (Deleting
+  // events first would strip the evidence and wrongly delete an active guest
+  // whose only clicks were older than the retention window.)
+  //
+  // Guests are explicitly ephemeral ("not saved — sign up to keep"), so:
+  //  1. orphaned guests with no links, older than a day (abandoned/failed or
+  //     scripted no-op flows), and
+  //  2. guests past the retention window whose links never received a real
+  //     (non-bot) click within the retained history.
+  // Deleting the user cascades to their links and events.
+  const orphanCutoff = new Date(Date.now() - 86400000);
+  const orphanGuests = await prisma.user.deleteMany({
+    where: {
+      isGuest: true,
+      createdAt: { lt: orphanCutoff },
+      links: { none: {} },
+    },
+  });
+  const staleGuests = await prisma.user.deleteMany({
+    where: {
+      isGuest: true,
+      createdAt: { lt: cutoff },
+      links: { none: { events: { some: { isBot: false } } } },
+    },
+  });
+
+  // Now prune remaining old events (from links kept above).
+  const events = await prisma.linkEvent.deleteMany({
     where: { timestamp: { lt: cutoff } },
   });
 
-  return jsonOk({ deleted: result.count, cutoff: cutoff.toISOString() });
+  return jsonOk({
+    eventsDeleted: events.count,
+    guestsDeleted: orphanGuests.count + staleGuests.count,
+    cutoff: cutoff.toISOString(),
+  });
 }

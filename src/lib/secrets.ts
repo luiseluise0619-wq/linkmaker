@@ -36,8 +36,10 @@ async function getOrCreateSetting(key: string): Promise<string> {
 }
 
 export async function getAuthSecret(): Promise<string> {
+  // Any non-empty AUTH_SECRET wins, so an explicitly-set value is never
+  // silently dropped (a strong, >=32-char value is strongly recommended).
   const fromEnv = process.env.AUTH_SECRET;
-  if (fromEnv && fromEnv.length >= 16) return fromEnv;
+  if (fromEnv) return fromEnv;
   return getOrCreateSetting("authSecret");
 }
 
