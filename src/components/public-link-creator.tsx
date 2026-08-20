@@ -9,6 +9,7 @@ import {
   ExternalLink,
   Info,
   LayoutDashboard,
+  Loader2,
   Plus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,9 +26,30 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" size="lg" disabled={pending}>
-      {pending ? "Creating…" : "Shorten"}
-      {!pending && <ArrowRight />}
+      {pending ? (
+        <>
+          <Loader2 className="animate-spin" />
+          Creating…
+        </>
+      ) : (
+        <>
+          Shorten
+          <ArrowRight />
+        </>
+      )}
     </Button>
+  );
+}
+
+/** Full-card overlay shown while the link + dashboard are being created. */
+function CreatingOverlay() {
+  const { pending } = useFormStatus();
+  if (!pending) return null;
+  return (
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-background/80 backdrop-blur-sm">
+      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      <p className="text-sm font-medium">Creating your link &amp; dashboard…</p>
+    </div>
   );
 }
 
@@ -40,7 +62,7 @@ export function PublicLinkCreator() {
   const [resetKey, setResetKey] = React.useState(0);
 
   if (state.ok && state.data) {
-    const { shortUrl, manageUrl, slug } = state.data;
+    const { shortUrl, manageUrl, dashboardUrl, slug } = state.data;
     return (
       <Card>
         <CardContent className="space-y-5 p-6">
@@ -54,6 +76,23 @@ export function PublicLinkCreator() {
             </div>
           </div>
 
+          {/* The dashboard link — the way back to this workspace on any device. */}
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
+            <p className="flex items-center gap-2 text-sm font-medium">
+              <LayoutDashboard className="h-4 w-4 text-primary" />
+              Your dashboard link — save it
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              No account needed. Open this link on any device to manage your
+              links and see analytics. Anyone with it can access your dashboard,
+              so keep it private.
+            </p>
+            <div className="mt-2 flex items-center gap-2 rounded-md border bg-background p-2">
+              <code className="flex-1 truncate text-xs">{dashboardUrl}</code>
+              <CopyButton value={dashboardUrl} />
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-2">
             <Button asChild>
               <Link href="/dashboard">
@@ -61,7 +100,7 @@ export function PublicLinkCreator() {
                 Open dashboard
               </Link>
             </Button>
-            <CopyButton value={shortUrl} label="Copy" />
+            <CopyButton value={shortUrl} label="Copy link" />
             <Button asChild variant="outline">
               <a href={shortUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink />
@@ -74,10 +113,6 @@ export function PublicLinkCreator() {
               </a>
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Your link is saved to a dashboard where you can edit the
-            destination, track analytics and manage all your links.
-          </p>
 
           <div className="flex justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -90,27 +125,22 @@ export function PublicLinkCreator() {
             />
           </div>
 
-          <div className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3">
+          <div className="rounded-lg border bg-muted/30 p-3">
             <p className="flex items-center gap-2 text-sm font-medium">
-              <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              Save your private stats link
+              <Info className="h-4 w-4 text-muted-foreground" />
+              Share-only stats link
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              This link is the only way to view analytics for an anonymous link.
-              Keep it private — anyone with it can see the stats.
+              A read-only analytics page for just this link (no dashboard
+              access).
             </p>
             <div className="mt-2 flex items-center gap-2 rounded-md border bg-background p-2">
               <code className="flex-1 truncate text-xs">{manageUrl}</code>
               <CopyButton value={manageUrl} />
             </div>
-            <div className="mt-2">
-              <Button asChild variant="link" size="sm" className="h-auto p-0">
-                <a href={manageUrl}>View analytics →</a>
-              </Button>
-            </div>
           </div>
 
-          <div className="flex items-center justify-between border-t pt-4">
+          <div className="border-t pt-4">
             <Button
               variant="secondary"
               onClick={() => setResetKey((k) => k + 1)}
@@ -118,13 +148,6 @@ export function PublicLinkCreator() {
               <Plus />
               Create another
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Using a guest account.{" "}
-              <Link href="/register" className="font-medium text-foreground hover:underline">
-                Add email &amp; password
-              </Link>{" "}
-              to secure it &amp; access from other devices.
-            </p>
           </div>
         </CardContent>
       </Card>
@@ -132,9 +155,10 @@ export function PublicLinkCreator() {
   }
 
   return (
-    <Card key={resetKey}>
+    <Card key={resetKey} className="relative">
       <CardContent className="p-6">
         <form action={formAction} className="space-y-3">
+          <CreatingOverlay />
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               name="destinationUrl"
@@ -183,7 +207,8 @@ export function PublicLinkCreator() {
           )}
 
           <p className="text-xs text-muted-foreground">
-            No account needed. Free, privacy-first, and editable if you sign up.
+            No account needed. You&apos;ll get a private dashboard link to manage
+            everything.
           </p>
         </form>
       </CardContent>

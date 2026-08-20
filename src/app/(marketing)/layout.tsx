@@ -36,14 +36,9 @@ export default async function MarketingLayout({
                 <Link href="/dashboard">Dashboard</Link>
               </Button>
             ) : (
-              <>
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/login">Sign in</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/register">Get started</Link>
-                </Button>
-              </>
+              <Button asChild size="sm">
+                <Link href="/#create">Create a link</Link>
+              </Button>
             )}
           </div>
         </div>
@@ -57,8 +52,8 @@ export default async function MarketingLayout({
             <Link href="/privacy" className="hover:text-foreground">
               Privacy
             </Link>
-            <Link href="/login" className="hover:text-foreground">
-              Sign in
+            <Link href="/#create" className="hover:text-foreground">
+              Create a link
             </Link>
           </div>
         </div>

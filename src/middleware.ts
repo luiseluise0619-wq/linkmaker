@@ -13,7 +13,8 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (pathname.startsWith("/dashboard") && !hasSession) {
-    const url = new URL("/login", req.url);
+    // No login — send visitors to the landing page to create a workspace.
+    const url = new URL("/", req.url);
     return NextResponse.redirect(url);
   }
 

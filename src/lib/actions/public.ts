@@ -2,13 +2,17 @@
 
 import { randomBytes } from "crypto";
 import { headers } from "next/headers";
-import { createGuestUserAndSession, getSessionUser } from "@/lib/auth";
+import {
+  createGuestUserAndSession,
+  getDashboardToken,
+  getSessionUser,
+} from "@/lib/auth";
 import { createLink, LinkError } from "@/lib/links";
 import { prisma } from "@/lib/prisma";
 import { createPublicLinkSchema } from "@/lib/validations";
 import { validateDestinationUrl } from "@/lib/url";
 import { rateLimit } from "@/lib/ratelimit";
-import { appUrl, shortUrl } from "@/lib/utils";
+import { appUrl, dashboardUrl, shortUrl } from "@/lib/utils";
 
 export interface PublicLinkState {
   ok: boolean;
@@ -17,6 +21,7 @@ export interface PublicLinkState {
     slug: string;
     shortUrl: string;
     manageUrl: string;
+    dashboardUrl: string;
     linkId: string;
   };
 }
@@ -62,12 +67,21 @@ export async function createPublicLinkAction(
   const dest = validateDestinationUrl(parsed.data.destinationUrl);
   if (!dest.ok) return { ok: false, error: dest.error };
 
-  // Reuse the current session, or provision a guest so they get a dashboard.
-  let user = await getSessionUser();
-  if (!user) user = await createGuestUserAndSession();
+  // Reuse the current workspace, or provision one so they get a dashboard.
+  const existing = await getSessionUser();
+  let userId: string;
+  let dashboardToken: string;
+  if (existing) {
+    userId = existing.id;
+    dashboardToken = await getDashboardToken(existing.id);
+  } else {
+    const ws = await createGuestUserAndSession();
+    userId = ws.id;
+    dashboardToken = ws.dashboardToken;
+  }
 
   try {
-    const link = await createLink(user.id, {
+    const link = await createLink(userId, {
       destinationUrl: parsed.data.destinationUrl,
       slug: parsed.data.slug,
     });
@@ -83,6 +97,7 @@ export async function createPublicLinkAction(
         slug: link.slug,
         shortUrl: shortUrl(link.slug),
         manageUrl: `${appUrl()}/s/${link.slug}?t=${manageToken}`,
+        dashboardUrl: dashboardUrl(dashboardToken),
         linkId: link.id,
       },
     };

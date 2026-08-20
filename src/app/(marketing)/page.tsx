@@ -91,24 +91,21 @@ export default function LandingPage() {
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/register">
-                Start for free
+              <Link href="#create">
+                Create a link
                 <ArrowRight />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/login">Sign in</Link>
-            </Button>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
-            No credit card required. Your data stays yours.
+            No account, no credit card. Your data stays yours.
           </p>
         </div>
 
         {/* Live, working demo — create a real short link with no account. */}
-        <div className="mx-auto mt-14 max-w-2xl">
+        <div id="create" className="mx-auto mt-14 max-w-2xl scroll-mt-24">
           <p className="mb-3 text-center text-sm font-medium text-muted-foreground">
-            Try it now — no sign-up required
+            Paste a link — no sign-up required
           </p>
           <PublicLinkCreator />
         </div>
@@ -271,8 +268,8 @@ export default function LandingPage() {
                 edit forever.
               </p>
               <Button asChild size="lg">
-                <Link href="/register">
-                  Get started
+                <Link href="#create">
+                  Create a link
                   <ArrowRight />
                 </Link>
               </Button>

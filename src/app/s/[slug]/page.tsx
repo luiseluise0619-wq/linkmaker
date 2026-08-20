@@ -157,9 +157,9 @@ export default async function PublicStatsPage({
       </div>
 
       <div className="mt-8 rounded-lg border bg-muted/30 p-4 text-center text-sm text-muted-foreground">
-        Want to edit the destination, add UTM tags or manage many links?{" "}
-        <Link href="/register" className="font-medium text-foreground hover:underline">
-          Create a free account
+        Want to create your own trackable links — no account needed?{" "}
+        <Link href="/" className="font-medium text-foreground hover:underline">
+          Make one for free
         </Link>
         .
       </div>

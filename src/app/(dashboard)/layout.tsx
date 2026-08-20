@@ -1,12 +1,14 @@
 import Link from "next/link";
-import { Plus, Sparkles } from "lucide-react";
-import { requireUser } from "@/lib/auth";
+import { Plus } from "lucide-react";
+import { getDashboardToken, requireUser } from "@/lib/auth";
+import { dashboardUrl } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { DashboardNav } from "@/components/dashboard/nav";
 import { UserMenu } from "@/components/dashboard/user-menu";
 import { MobileNav } from "@/components/dashboard/mobile-nav";
+import { DashboardLinkBar } from "@/components/dashboard/dashboard-link-bar";
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +16,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
+  const token = await getDashboardToken(user.id);
 
   return (
     <div className="min-h-screen">
@@ -46,22 +49,10 @@ export default async function DashboardLayout({
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <UserMenu name={user.name} email={user.email} isGuest={user.isGuest} />
+            <UserMenu dashboardHref={dashboardUrl(token)} />
           </div>
         </header>
-        {user.isGuest && (
-          <div className="border-b bg-primary/5 px-4 py-2.5 md:px-8">
-            <div className="flex flex-col items-start gap-2 text-sm sm:flex-row sm:items-center sm:justify-between">
-              <p className="flex items-center gap-2 text-muted-foreground">
-                <Sparkles className="h-4 w-4 shrink-0 text-primary" />
-                You&apos;re using a <strong className="text-foreground">guest account</strong>. Add an email &amp; password to keep your links and use them on other devices.
-              </p>
-              <Button asChild size="sm" className="shrink-0">
-                <Link href="/register">Secure my account</Link>
-              </Button>
-            </div>
-          </div>
-        )}
+        <DashboardLinkBar url={dashboardUrl(token)} />
         <main className="flex-1 p-4 md:p-8">{children}</main>
       </div>
     </div>

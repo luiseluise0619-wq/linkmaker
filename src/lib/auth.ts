@@ -1,9 +1,8 @@
 import "server-only";
-import { randomUUID } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
-import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import { getAuthSecret } from "./secrets";
 
@@ -22,15 +21,8 @@ export interface SessionUser {
   isGuest: boolean;
 }
 
-export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 12);
-}
-
-export async function verifyPassword(
-  password: string,
-  hash: string,
-): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+function newToken(): string {
+  return randomBytes(24).toString("base64url");
 }
 
 async function createToken(user: SessionUser): Promise<string> {
@@ -79,10 +71,11 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   }
 }
 
-/** Server-side guard: returns the user or redirects to /login. */
+/** Server-side guard: returns the workspace, or sends visitors to the landing
+ * page (there is no login — a workspace is created by shortening a link). */
 export async function requireUser(): Promise<SessionUser> {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
+  if (!user) redirect("/");
   return user;
 }
 
@@ -101,21 +94,58 @@ export async function requireDbUser(): Promise<SessionUser | null> {
 }
 
 /**
- * Auto-provision a guest account (no password) and start a session for it, so
- * a visitor gets a full dashboard without signing up. They can later upgrade
- * the guest into a real account by setting an email + password.
+ * Auto-provision an anonymous workspace (no login) and start a session for it,
+ * so a visitor gets a full dashboard immediately. The workspace is identified
+ * by an unguessable dashboardToken — visiting /d/<token> reopens it anywhere.
  */
-export async function createGuestUserAndSession(): Promise<SessionUser> {
+export async function createGuestUserAndSession(): Promise<
+  SessionUser & { dashboardToken: string }
+> {
   const suffix = randomUUID();
   const user = await prisma.user.create({
     data: {
-      email: `guest_${suffix}@guest.local`,
-      name: "Guest",
-      passwordHash: "!disabled-guest!",
+      email: `ws_${suffix}@workspace.local`,
+      name: "Workspace",
+      passwordHash: "!disabled!",
       isGuest: true,
+      dashboardToken: newToken(),
     },
-    select: { id: true, email: true, name: true, isGuest: true },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      isGuest: true,
+      dashboardToken: true,
+    },
   });
   await createSession(user);
-  return user;
+  return { ...user, dashboardToken: user.dashboardToken as string };
+}
+
+/** Get (or lazily create) the dashboard token for a workspace. */
+export async function getDashboardToken(userId: string): Promise<string> {
+  const existing = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { dashboardToken: true },
+  });
+  if (existing?.dashboardToken) return existing.dashboardToken;
+  const token = newToken();
+  await prisma.user.update({
+    where: { id: userId },
+    data: { dashboardToken: token },
+  });
+  return token;
+}
+
+/** Open a workspace from its dashboard token: verifies it and starts a
+ * session. Returns true if the token was valid. */
+export async function startSessionByToken(token: string): Promise<boolean> {
+  if (!token) return false;
+  const user = await prisma.user.findUnique({
+    where: { dashboardToken: token },
+    select: { id: true, email: true, name: true, isGuest: true },
+  });
+  if (!user) return false;
+  await createSession(user);
+  return true;
 }

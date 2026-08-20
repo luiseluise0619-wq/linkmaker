@@ -11,13 +11,14 @@ no mock data and no invasive fingerprinting.
 
 ## Core features
 
-- **No-account link creation with a full dashboard** — anyone can shorten a
-  URL from the landing page without signing up. A **guest account** is
-  auto-provisioned for their browser session, so they immediately get the full
-  dashboard (links table, analytics, editing, campaigns) — each guest sees only
-  their own links. Registering later **upgrades the guest in place**, keeping
-  all of their links and analytics. Links also expose a private, token-gated
-  stats page (`/s/<slug>?t=…`) that can be shared read-only.
+- **No login — anonymous workspaces with a full dashboard.** There are no
+  accounts or passwords. Shortening a link from the landing page instantly
+  provisions a private **workspace** and gives you a **dashboard link**
+  (`/d/<token>`) — open it on any device to manage your links, edit
+  destinations, and see analytics. Each workspace is isolated (sessions are
+  cookie-based; the dashboard link is the portable credential). Analytics can
+  be **reset** to zero from Settings, and links also expose a read-only,
+  token-gated stats page (`/s/<slug>?t=…`) for sharing.
 - **Editable short links** — the short URL (`/go/<slug>`) is a permanent
   abstraction over the destination. Change where a link points anytime without
   breaking the URL, QR code or historical analytics.
@@ -36,8 +37,8 @@ no mock data and no invasive fingerprinting.
   weekday activity, and device / browser / OS / country / referrer / UTM
   breakdowns.
 - **Campaigns** to group links and measure combined performance.
-- **Authentication & authorization** — every account only sees its own links,
-  images, campaigns and analytics, enforced server-side.
+- **Server-side isolation** — every workspace only sees its own links, images,
+  campaigns and analytics, enforced on the server for every query.
 
 ## Tech stack
 

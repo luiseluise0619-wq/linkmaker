@@ -1,14 +1,16 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { LogOut } from "lucide-react";
-import { requireUser } from "@/lib/auth";
+import { getDashboardToken, requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isStorageConfigured } from "@/lib/storage";
 import { logoutAction } from "@/lib/actions/auth";
-import { formatNumber } from "@/lib/utils";
+import { dashboardUrl, formatNumber } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CopyButton } from "@/components/copy-button";
+import { ResetMetricsButton } from "@/components/dashboard/reset-metrics-button";
 import {
   Card,
   CardContent,
@@ -23,42 +25,32 @@ export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const user = await requireUser();
-  const [linkCount, eventCount] = await Promise.all([
+  const [token, linkCount, eventCount] = await Promise.all([
+    getDashboardToken(user.id),
     prisma.link.count({ where: { userId: user.id } }),
     prisma.linkEvent.count({ where: { link: { userId: user.id } } }),
   ]);
   const retention = process.env.ANALYTICS_RETENTION_DAYS || "365";
+  const dashUrl = dashboardUrl(token);
 
   return (
     <>
-      <PageHeader title="Settings" description="Your account and preferences." />
+      <PageHeader title="Settings" description="Your workspace and preferences." />
 
       <div className="mx-auto max-w-2xl space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Account</CardTitle>
-            <CardDescription>Your profile information.</CardDescription>
+            <CardTitle>Dashboard link</CardTitle>
+            <CardDescription>
+              This is how you get back to this workspace — no account or password.
+              Save it. Anyone with the link can access your dashboard.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {user.isGuest ? (
-              <>
-                <Row label="Account type" value="Guest (not saved)" />
-                <Separator />
-                <p className="text-sm text-muted-foreground">
-                  Your links live in this browser session only. Add an email
-                  and password to keep them and sign in from anywhere.
-                </p>
-                <Button asChild size="sm">
-                  <a href="/register">Secure my account</a>
-                </Button>
-              </>
-            ) : (
-              <>
-                <Row label="Name" value={user.name || "—"} />
-                <Separator />
-                <Row label="Email" value={user.email} />
-              </>
-            )}
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
+              <code className="flex-1 truncate text-sm">{dashUrl}</code>
+              <CopyButton value={dashUrl} />
+            </div>
           </CardContent>
         </Card>
 
@@ -84,18 +76,27 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Privacy &amp; data</CardTitle>
+            <CardTitle>Reset analytics</CardTitle>
             <CardDescription>
-              How your analytics data is handled.
+              Clear all recorded clicks and set every number back to zero. Your
+              links keep working.
             </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResetMetricsButton />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Privacy &amp; data</CardTitle>
+            <CardDescription>How your analytics data is handled.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Row label="Data retention" value={`${retention} days`} />
             <p className="text-sm text-muted-foreground">
-              Click events are retained for the period above (set via{" "}
-              <code>ANALYTICS_RETENTION_DAYS</code>). We never store raw IP
-              addresses; unique visitors are estimated with rotating, salted
-              hashes.
+              We never store raw IP addresses; unique visitors are estimated with
+              rotating, salted hashes.
             </p>
             <Link
               href="/privacy"
@@ -108,13 +109,17 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Session</CardTitle>
+            <CardTitle>New workspace</CardTitle>
+            <CardDescription>
+              Start fresh with an empty workspace. Your current links stay
+              reachable via the dashboard link above — save it first.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form action={logoutAction}>
               <Button type="submit" variant="outline">
                 <LogOut />
-                Sign out
+                Start a new workspace
               </Button>
             </form>
           </CardContent>

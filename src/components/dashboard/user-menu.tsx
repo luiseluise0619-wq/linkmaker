@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, Plus, Settings as SettingsIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,16 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/lib/actions/auth";
 
-export function UserMenu({
-  name,
-  email,
-  isGuest = false,
-}: {
-  name: string | null;
-  email: string;
-  isGuest?: boolean;
-}) {
-  const initial = (name || email || "?").charAt(0).toUpperCase();
+export function UserMenu({ dashboardHref }: { dashboardHref: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -29,38 +20,33 @@ export function UserMenu({
           variant="ghost"
           size="icon"
           className="rounded-full"
-          aria-label="Account menu"
+          aria-label="Workspace menu"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-            {initial}
+            W
           </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col">
-            <span className="truncate">{isGuest ? "Guest" : name || "Account"}</span>
+            <span className="truncate">Your workspace</span>
             <span className="truncate text-xs font-normal text-muted-foreground">
-              {isGuest ? "Guest account · not saved" : email}
+              Anonymous · no account
             </span>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {isGuest && (
-          <>
-            <DropdownMenuItem asChild>
-              <a href="/register">
-                <UserIcon />
-                Secure my account
-              </a>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
         <DropdownMenuItem asChild>
           <a href="/dashboard/settings">
-            <UserIcon />
-            Settings
+            <SettingsIcon />
+            Settings &amp; dashboard link
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={dashboardHref}>
+            <Plus />
+            Open on another device
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -68,7 +54,7 @@ export function UserMenu({
           <form action={logoutAction} className="w-full">
             <button type="submit" className="flex w-full items-center gap-2">
               <LogOut />
-              Sign out
+              Start a new workspace
             </button>
           </form>
         </DropdownMenuItem>

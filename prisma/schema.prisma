@@ -43,12 +43,13 @@ model User {
   email        String     @unique
   name         String?
   passwordHash String
-  // A guest account is auto-provisioned for a browser that creates links
-  // without signing up. It has a session but no usable password until the
-  // visitor upgrades it by setting an email + password.
-  isGuest      Boolean    @default(false)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  // Every workspace is anonymous (no login). It is identified by an
+  // unguessable dashboard token: visiting /d/<token> opens its dashboard on
+  // any device. isGuest is retained for compatibility and is always true.
+  isGuest        Boolean  @default(true)
+  dashboardToken String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   links        Link[]
   campaigns    Campaign[]

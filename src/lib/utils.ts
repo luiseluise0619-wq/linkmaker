@@ -26,6 +26,11 @@ export function shortUrl(slug: string): string {
   return `${appUrl()}/go/${slug}`;
 }
 
+/** Build the portable dashboard URL for a workspace token. */
+export function dashboardUrl(token: string): string {
+  return `${appUrl()}/d/${token}`;
+}
+
 export function formatNumber(n: number): string {
   return new Intl.NumberFormat("en-US").format(n);
 }
