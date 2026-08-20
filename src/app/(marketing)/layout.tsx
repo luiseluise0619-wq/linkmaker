@@ -49,6 +49,9 @@ export default async function MarketingLayout({
           <Logo />
           <p>© {new Date().getFullYear()} LinkMaker. Built for the web.</p>
           <div className="flex gap-4">
+            <Link href="/methodology" className="hover:text-foreground">
+              How it works
+            </Link>
             <Link href="/privacy" className="hover:text-foreground">
               Privacy
             </Link>

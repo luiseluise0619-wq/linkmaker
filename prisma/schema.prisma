@@ -147,16 +147,23 @@ model LinkEvent {
   userAgent      String?
   browser        String?
   browserVersion String?
+  engine         String? // browser engine, e.g. Blink / WebKit / Gecko
   os             String?
+  osVersion      String?
   deviceType     DeviceType @default(UNKNOWN)
+  deviceVendor   String? // e.g. Apple, Samsung
+  deviceModel    String? // e.g. iPhone, SM-G991B
+  cpuArch        String? // e.g. amd64, arm64
   isMobile       Boolean    @default(false)
   language       String?
   screenWidth    Int?
   screenHeight   Int?
 
   // Geo (coarse, from edge headers when available; never raw IP).
-  country String?
-  region  String?
+  country  String?
+  region   String?
+  city     String?
+  timezone String?
 
   // UTM snapshot at click time.
   utmSource   String?

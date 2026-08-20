@@ -93,6 +93,17 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
         </Card>
         <Card>
           <CardHeader>
+            <CardTitle>Cities</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BreakdownList
+              data={analytics.cities}
+              emptyMessage="No city data available"
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
             <CardTitle>Referrers</CardTitle>
           </CardHeader>
           <CardContent>

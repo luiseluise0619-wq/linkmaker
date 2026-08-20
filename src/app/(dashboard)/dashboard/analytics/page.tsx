@@ -147,6 +147,7 @@ export default async function AnalyticsPage({
             browsers: data.browsers,
             os: data.os,
             countries: data.countries,
+            cities: data.cities,
             referrers: data.referrers,
             utm: data.utm,
             source: data.source,

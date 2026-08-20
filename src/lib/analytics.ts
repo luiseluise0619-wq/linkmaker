@@ -10,12 +10,19 @@ export interface CollectedEvent {
   userAgent: string | null;
   browser: string | null;
   browserVersion: string | null;
+  engine: string | null;
   os: string | null;
+  osVersion: string | null;
   deviceType: DeviceType;
+  deviceVendor: string | null;
+  deviceModel: string | null;
+  cpuArch: string | null;
   isMobile: boolean;
   language: string | null;
   country: string | null;
   region: string | null;
+  city: string | null;
+  timezone: string | null;
   source: "LINK" | "QR";
   isBot: boolean;
   botReason: string | null;
@@ -89,6 +96,8 @@ export interface CollectInput {
   isQr: boolean;
   linkId: string;
   salt: string;
+  city: string | null;
+  timezone: string | null;
 }
 
 export function collectEvent(input: CollectInput): CollectedEvent {
@@ -109,12 +118,19 @@ export function collectEvent(input: CollectInput): CollectedEvent {
     userAgent: input.userAgentHeader ?? null,
     browser: result.browser.name ?? null,
     browserVersion: result.browser.version ?? null,
+    engine: result.engine.name ?? null,
     os: result.os.name ?? null,
+    osVersion: result.os.version ?? null,
     deviceType,
+    deviceVendor: result.device.vendor ?? null,
+    deviceModel: result.device.model ?? null,
+    cpuArch: result.cpu.architecture ?? null,
     isMobile,
     language: parseLanguage(input.languageHeader),
     country: input.country ?? null,
     region: input.region ?? null,
+    city: input.city ?? null,
+    timezone: input.timezone ?? null,
     source: input.isQr ? "QR" : "LINK",
     isBot: bot.isBot,
     botReason: bot.reason,

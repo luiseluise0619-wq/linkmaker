@@ -24,12 +24,19 @@ export async function GET() {
       timestamp: Date;
       slug: string;
       deviceType: string;
+      deviceVendor: string | null;
+      deviceModel: string | null;
+      cpuArch: string | null;
       os: string | null;
+      osVersion: string | null;
       browser: string | null;
       browserVersion: string | null;
+      engine: string | null;
       referrerDomain: string | null;
       country: string | null;
       region: string | null;
+      city: string | null;
+      timezone: string | null;
       language: string | null;
       source: string;
       isBot: boolean;
@@ -41,8 +48,10 @@ export async function GET() {
     }[]
   >`
     SELECT e."timestamp", l.slug, e."deviceType"::text AS "deviceType",
-           e.os, e.browser, e."browserVersion", e."referrerDomain",
-           e.country, e.region, e.language, e.source::text AS source,
+           e."deviceVendor", e."deviceModel", e."cpuArch",
+           e.os, e."osVersion", e.browser, e."browserVersion", e.engine,
+           e."referrerDomain", e.country, e.region, e.city, e.timezone,
+           e.language, e.source::text AS source,
            e."isBot", e.hour, e."dayOfWeek",
            e."utmSource", e."utmMedium", e."utmCampaign"
     FROM "link_events" e
@@ -58,12 +67,19 @@ export async function GET() {
       "Link",
       "Source",
       "Device",
+      "Device vendor",
+      "Device model",
+      "CPU",
       "OS",
+      "OS version",
       "Browser",
       "Browser version",
+      "Engine",
       "Referrer domain",
       "Country",
       "Region",
+      "City",
+      "Timezone",
       "Language",
       "Hour (UTC)",
       "Weekday",
@@ -77,12 +93,19 @@ export async function GET() {
       `/go/${r.slug}`,
       r.source,
       r.deviceType,
+      r.deviceVendor,
+      r.deviceModel,
+      r.cpuArch,
       r.os,
+      r.osVersion,
       r.browser,
       r.browserVersion,
+      r.engine,
       r.referrerDomain,
       r.country,
       r.region,
+      r.city,
+      r.timezone,
       r.language,
       r.hour,
       WEEKDAYS[r.dayOfWeek] ?? r.dayOfWeek,

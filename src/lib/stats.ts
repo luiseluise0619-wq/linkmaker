@@ -269,6 +269,7 @@ async function genericBreakdown(
     | "browser"
     | "os"
     | "country"
+    | "city"
     | "referrerDomain"
     | "utmCampaign",
   limit = 8,
@@ -294,6 +295,8 @@ export const getBrowserBreakdown = (ids: string[]) =>
 export const getOsBreakdown = (ids: string[]) => genericBreakdown(ids, "os");
 export const getCountryBreakdown = (ids: string[]) =>
   genericBreakdown(ids, "country");
+export const getCityBreakdown = (ids: string[]) =>
+  genericBreakdown(ids, "city");
 export const getReferrerBreakdown = (ids: string[]) =>
   genericBreakdown(ids, "referrerDomain");
 export const getUtmCampaignBreakdown = (ids: string[]) =>
@@ -433,6 +436,7 @@ export async function getAccountAnalytics(
     browsers,
     os,
     countries,
+    cities,
     referrers,
     utm,
     topLinks,
@@ -446,6 +450,7 @@ export async function getAccountAnalytics(
     getBrowserBreakdown(linkIds),
     getOsBreakdown(linkIds),
     getCountryBreakdown(linkIds),
+    getCityBreakdown(linkIds),
     getReferrerBreakdown(linkIds),
     getUtmCampaignBreakdown(linkIds),
     getTopLinks(userId, topSort, 10),
@@ -461,6 +466,7 @@ export async function getAccountAnalytics(
     browsers,
     os,
     countries,
+    cities,
     referrers,
     utm,
     topLinks,
@@ -480,6 +486,7 @@ export async function getLinkAnalytics(linkId: string) {
     browsers,
     os,
     countries,
+    cities,
     referrers,
     utm,
     source,
@@ -492,6 +499,7 @@ export async function getLinkAnalytics(linkId: string) {
     getBrowserBreakdown(linkIds),
     getOsBreakdown(linkIds),
     getCountryBreakdown(linkIds),
+    getCityBreakdown(linkIds),
     getReferrerBreakdown(linkIds),
     getUtmCampaignBreakdown(linkIds),
     getSourceSplit(linkIds),
@@ -505,6 +513,7 @@ export async function getLinkAnalytics(linkId: string) {
     browsers,
     os,
     countries,
+    cities,
     referrers,
     utm,
     source,
