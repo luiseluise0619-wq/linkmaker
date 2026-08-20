@@ -9,6 +9,8 @@ import { appUrl } from "@/lib/utils";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Allow enough time to wait out a database cold start on a single request.
+export const maxDuration = 10;
 
 function unavailable(reason: string) {
   const url = new URL("/link-unavailable", appUrl());
@@ -20,19 +22,22 @@ function unavailable(reason: string) {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Retry a DB read a few times with short backoff. Serverless functions hitting
- * a free-tier Postgres that has auto-suspended can see a transient connection
- * error on the first query while the database wakes (~1s); a couple of retries
- * turn that into a successful redirect instead of a failed one.
+ * Retry a DB read with escalating backoff. A free-tier Postgres that has
+ * auto-suspended can take a few seconds to wake, during which the first query
+ * may error. We keep retrying (total wait budget ~7s, within the function's
+ * time limit) so a SINGLE click waits out the wake-up and succeeds, instead of
+ * the visitor having to click several times.
  */
-async function withRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+const RETRY_DELAYS_MS = [400, 700, 1200, 1800, 2500]; // 6 attempts, ~6.6s total
+async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
   let lastErr: unknown;
-  for (let i = 0; i < attempts; i++) {
+  for (let i = 0; i <= RETRY_DELAYS_MS.length; i++) {
     try {
       return await fn();
     } catch (e) {
       lastErr = e;
-      if (i < attempts - 1) await sleep(250 * (i + 1));
+      const delay = RETRY_DELAYS_MS[i];
+      if (delay !== undefined) await sleep(delay);
     }
   }
   throw lastErr;

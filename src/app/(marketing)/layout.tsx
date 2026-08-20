@@ -3,13 +3,16 @@ import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getSessionUser } from "@/lib/auth";
+import { warmDb } from "@/lib/prisma";
 
 export default async function MarketingLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getSessionUser();
+  // Warm the (possibly auto-suspended) database on site entry so the first
+  // link creation / dashboard load is fast. Runs alongside the session read.
+  const [user] = await Promise.all([getSessionUser(), warmDb()]);
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
