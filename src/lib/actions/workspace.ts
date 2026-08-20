@@ -23,6 +23,19 @@ export async function resetMetricsAction(): Promise<ActionResult> {
 }
 
 /**
+ * Delete every link in the current workspace (and, by cascade, all of their
+ * click events and images). Frees database space. This cannot be undone.
+ */
+export async function deleteAllLinksAction(): Promise<ActionResult> {
+  const user = await requireUser();
+  const result = await prisma.link.deleteMany({ where: { userId: user.id } });
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/links");
+  revalidatePath("/dashboard/analytics");
+  return { ok: true, data: { deleted: result.count } };
+}
+
+/**
  * Start a fresh workspace: clears the current session so the next created link
  * provisions a new, empty workspace. Existing links stay reachable via their
  * saved dashboard link.

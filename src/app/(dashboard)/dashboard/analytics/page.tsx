@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Download } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import {
   getAccountAnalytics,
@@ -20,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = { title: "Analytics" };
 export const dynamic = "force-dynamic";
@@ -79,6 +80,22 @@ export default async function AnalyticsPage({
       <PageHeader
         title="Analytics"
         description="Aggregated traffic across all of your links."
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <a href="/api/export/links" download>
+                <Download />
+                Links CSV
+              </a>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="/api/export/events" download>
+                <Download />
+                Events CSV
+              </a>
+            </Button>
+          </div>
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

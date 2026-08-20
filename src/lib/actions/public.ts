@@ -44,8 +44,9 @@ export async function createPublicLinkAction(
   formData: FormData,
 ): Promise<PublicLinkState> {
   const ip = clientIp();
-  const perMinute = rateLimit(`pub:min:${ip}`, 5, 60_000);
-  const perHour = rateLimit(`pub:hour:${ip}`, 30, 60 * 60_000);
+  // Generous limits so normal/repeated use is never blocked; still caps abuse.
+  const perMinute = rateLimit(`pub:min:${ip}`, 30, 60_000);
+  const perHour = rateLimit(`pub:hour:${ip}`, 300, 60 * 60_000);
   if (!perMinute.success || !perHour.success) {
     return {
       ok: false,

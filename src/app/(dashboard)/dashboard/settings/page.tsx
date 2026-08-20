@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { LogOut } from "lucide-react";
+import { Download, LogOut } from "lucide-react";
 import { getDashboardToken, requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isStorageConfigured } from "@/lib/storage";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CopyButton } from "@/components/copy-button";
 import { ResetMetricsButton } from "@/components/dashboard/reset-metrics-button";
+import { DeleteAllLinksButton } from "@/components/dashboard/delete-all-button";
 import {
   Card,
   CardContent,
@@ -76,6 +77,29 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Export data</CardTitle>
+            <CardDescription>
+              Download your links and raw click events as CSV (opens in Excel).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <a href="/api/export/links" download>
+                <Download />
+                Links CSV
+              </a>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="/api/export/events" download>
+                <Download />
+                Click events CSV
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Reset analytics</CardTitle>
             <CardDescription>
               Clear all recorded clicks and set every number back to zero. Your
@@ -84,6 +108,19 @@ export default async function SettingsPage() {
           </CardHeader>
           <CardContent>
             <ResetMetricsButton />
+          </CardContent>
+        </Card>
+
+        <Card className="border-destructive/40">
+          <CardHeader>
+            <CardTitle>Delete all links</CardTitle>
+            <CardDescription>
+              Permanently delete every link and its data to free up space. The
+              short URLs stop working. This cannot be undone.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DeleteAllLinksButton />
           </CardContent>
         </Card>
 

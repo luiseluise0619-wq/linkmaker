@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
-import { Link2, Plus } from "lucide-react";
+import { Download, Link2, Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatNumber, shortUrl } from "@/lib/utils";
@@ -119,12 +119,22 @@ export default async function LinksPage({
         title="Links"
         description="Manage your short links, image links and QR codes."
         actions={
-          <Button asChild>
-            <Link href="/dashboard/links/new">
-              <Plus />
-              New link
-            </Link>
-          </Button>
+          <>
+            {total > 0 && (
+              <Button asChild variant="outline">
+                <a href="/api/export/links" download>
+                  <Download />
+                  Export CSV
+                </a>
+              </Button>
+            )}
+            <Button asChild>
+              <Link href="/dashboard/links/new">
+                <Plus />
+                New link
+              </Link>
+            </Button>
+          </>
         }
       />
 
