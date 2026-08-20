@@ -197,7 +197,7 @@ export async function getTimeline(
   // "local-as-UTC" space so the keys line up.
   const rows = await prisma.$queryRaw<{ bucket: Date; clicks: bigint }[]>`
     SELECT date_trunc(${hourly ? "hour" : "day"},
-             "timestamp" + make_interval(mins => ${off})) AS bucket,
+             "timestamp" + make_interval(mins => ${off}::int)) AS bucket,
            COUNT(*)::bigint AS clicks
     FROM "link_events"
     WHERE "linkId" = ANY(${linkIds})
@@ -246,7 +246,7 @@ export async function getClicksByHour(linkIds: string[]): Promise<HourPoint[]> {
   const off = offsetMinutes();
   // Extract the hour in the display timezone (shift the UTC value first).
   const rows = await prisma.$queryRaw<{ hour: number; clicks: bigint }[]>`
-    SELECT EXTRACT(HOUR FROM "timestamp" + make_interval(mins => ${off}))::int AS hour,
+    SELECT EXTRACT(HOUR FROM "timestamp" + make_interval(mins => ${off}::int))::int AS hour,
            COUNT(*)::bigint AS clicks
     FROM "link_events"
     WHERE "linkId" = ANY(${linkIds}) AND "isBot" = false
@@ -273,7 +273,7 @@ export async function getClicksByWeekday(
   const off = offsetMinutes();
   // Day-of-week in the display timezone (0 = Sunday). Postgres DOW matches JS.
   const rows = await prisma.$queryRaw<{ dow: number; clicks: bigint }[]>`
-    SELECT EXTRACT(DOW FROM "timestamp" + make_interval(mins => ${off}))::int AS dow,
+    SELECT EXTRACT(DOW FROM "timestamp" + make_interval(mins => ${off}::int))::int AS dow,
            COUNT(*)::bigint AS clicks
     FROM "link_events"
     WHERE "linkId" = ANY(${linkIds}) AND "isBot" = false
