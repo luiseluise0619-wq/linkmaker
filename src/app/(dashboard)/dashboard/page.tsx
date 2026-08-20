@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDashboardData } from "@/lib/stats";
-import { formatNumber, shortUrl } from "@/lib/utils";
+import { DISPLAY_TZ, formatNumber, shortUrl } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Button } from "@/components/ui/button";
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Clicks — last 30 days</CardTitle>
-            <CardDescription>Human clicks per day (UTC).</CardDescription>
+            <CardDescription>Human clicks per day ({DISPLAY_TZ}).</CardDescription>
           </div>
           <Button asChild variant="ghost" size="sm">
             <Link href="/dashboard/analytics">

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { SimpleBarChart } from "@/components/charts/bar-chart";
 import { BreakdownList } from "@/components/charts/breakdown-list";
+import { DISPLAY_TZ } from "@/lib/utils";
 import type { getLinkAnalytics } from "@/lib/stats";
 
 type Analytics = Awaited<ReturnType<typeof getLinkAnalytics>>;
@@ -38,7 +39,9 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
         <Card>
           <CardHeader>
             <CardTitle>Hourly activity</CardTitle>
-            <CardDescription>Clicks by hour of day (UTC).</CardDescription>
+            <CardDescription>
+              Clicks by hour of day ({DISPLAY_TZ}).
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <SimpleBarChart data={hourData} />

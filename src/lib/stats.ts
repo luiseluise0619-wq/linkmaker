@@ -1,43 +1,58 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma";
+import { displayOffsetMinutes } from "./utils";
 
 /**
  * Analytics aggregation helpers.
  *
  * Convention: "clicks" and "visitors" metrics count HUMAN (non-bot) events by
- * default. Bot counts are surfaced separately and labeled as estimates. All
- * time bucketing uses UTC to match how events are stored.
+ * default. Bot counts are surfaced separately and labeled as estimates.
+ *
+ * Events are stored in UTC, but all day/hour/weekday bucketing and boundaries
+ * are computed in the DISPLAY timezone (Asia/Seoul by default) so the
+ * dashboard reads in local — e.g. Korean — time.
  */
 
 export type TimelineRange = "24h" | "7d" | "30d" | "90d";
 
-function startOf(range: TimelineRange): Date {
-  const now = new Date();
-  const d = new Date(now);
-  switch (range) {
-    case "24h":
-      d.setUTCHours(now.getUTCHours() - 23, 0, 0, 0);
-      return d;
-    case "7d":
-      d.setUTCDate(now.getUTCDate() - 6);
-      d.setUTCHours(0, 0, 0, 0);
-      return d;
-    case "30d":
-      d.setUTCDate(now.getUTCDate() - 29);
-      d.setUTCHours(0, 0, 0, 0);
-      return d;
-    case "90d":
-      d.setUTCDate(now.getUTCDate() - 89);
-      d.setUTCHours(0, 0, 0, 0);
-      return d;
-  }
+/** Offset (minutes) from UTC to the display timezone right now. */
+function offsetMinutes(): number {
+  return displayOffsetMinutes();
 }
 
+/** Real UTC instant for a local-time boundary N days before "today" (local),
+ * at local midnight; or, for 24h, N hours before the current local hour. */
+function startOf(range: TimelineRange): Date {
+  const offMs = offsetMinutes() * 60000;
+  // "local" is the current wall clock in the display TZ, expressed as-if-UTC.
+  const local = new Date(Date.now() + offMs);
+  switch (range) {
+    case "24h":
+      local.setUTCHours(local.getUTCHours() - 23, 0, 0, 0);
+      break;
+    case "7d":
+      local.setUTCDate(local.getUTCDate() - 6);
+      local.setUTCHours(0, 0, 0, 0);
+      break;
+    case "30d":
+      local.setUTCDate(local.getUTCDate() - 29);
+      local.setUTCHours(0, 0, 0, 0);
+      break;
+    case "90d":
+      local.setUTCDate(local.getUTCDate() - 89);
+      local.setUTCHours(0, 0, 0, 0);
+      break;
+  }
+  return new Date(local.getTime() - offMs); // back to a real UTC instant
+}
+
+/** Real UTC instant of local midnight, N local days ago. */
 function daysAgo(n: number): Date {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - n);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
+  const offMs = offsetMinutes() * 60000;
+  const local = new Date(Date.now() + offMs);
+  local.setUTCDate(local.getUTCDate() - n);
+  local.setUTCHours(0, 0, 0, 0);
+  return new Date(local.getTime() - offMs);
 }
 
 /** SQL fragment restricting to a user's links (parameterized). */
@@ -175,13 +190,14 @@ export async function getTimeline(
   if (!linkIds.length) return [];
   const since = startOf(range);
   const hourly = range === "24h";
-  // "timestamp" is stored as a naive UTC value (timestamp without time zone).
-  // Truncating it directly keeps bucketing in UTC and independent of the
-  // database session's timezone, so buckets always align with the UTC keys
-  // used for gap-filling below. (An AT TIME ZONE cast would truncate in the
-  // session TZ and misalign the hourly chart on non-UTC hosted databases.)
+  const off = offsetMinutes();
+  // Shift the stored UTC value into the display timezone's wall clock (by
+  // adding the offset) BEFORE truncating, so days/hours bucket in local time.
+  // The truncated value is a naive local timestamp; we gap-fill in the same
+  // "local-as-UTC" space so the keys line up.
   const rows = await prisma.$queryRaw<{ bucket: Date; clicks: bigint }[]>`
-    SELECT date_trunc(${hourly ? "hour" : "day"}, "timestamp") AS bucket,
+    SELECT date_trunc(${hourly ? "hour" : "day"},
+             "timestamp" + make_interval(mins => ${off})) AS bucket,
            COUNT(*)::bigint AS clicks
     FROM "link_events"
     WHERE "linkId" = ANY(${linkIds})
@@ -190,7 +206,6 @@ export async function getTimeline(
     GROUP BY bucket
     ORDER BY bucket ASC
   `;
-  // Fill gaps so the chart is continuous.
   const map = new Map<string, number>();
   for (const r of rows) {
     const key = hourly
@@ -198,10 +213,12 @@ export async function getTimeline(
       : r.bucket.toISOString().slice(0, 10);
     map.set(key, Number(r.clicks));
   }
+  // Iterate in local-as-UTC space (shift the real boundaries by the offset).
+  const offMs = off * 60000;
   const points: TimelinePoint[] = [];
-  const cursor = new Date(since);
-  const now = new Date();
-  while (cursor <= now) {
+  const cursor = new Date(since.getTime() + offMs);
+  const end = new Date(Date.now() + offMs);
+  while (cursor <= end) {
     const key = hourly
       ? cursor.toISOString().slice(0, 13)
       : cursor.toISOString().slice(0, 10);
@@ -226,12 +243,18 @@ export async function getClicksByHour(linkIds: string[]): Promise<HourPoint[]> {
     clicks: 0,
   }));
   if (!linkIds.length) return result;
-  const rows = await prisma.linkEvent.groupBy({
-    by: ["hour"],
-    where: whereClause({ linkIds }),
-    _count: { _all: true },
-  });
-  for (const r of rows) result[r.hour].clicks = r._count._all;
+  const off = offsetMinutes();
+  // Extract the hour in the display timezone (shift the UTC value first).
+  const rows = await prisma.$queryRaw<{ hour: number; clicks: bigint }[]>`
+    SELECT EXTRACT(HOUR FROM "timestamp" + make_interval(mins => ${off}))::int AS hour,
+           COUNT(*)::bigint AS clicks
+    FROM "link_events"
+    WHERE "linkId" = ANY(${linkIds}) AND "isBot" = false
+    GROUP BY 1
+  `;
+  for (const r of rows) {
+    if (result[r.hour]) result[r.hour].clicks = Number(r.clicks);
+  }
   return result;
 }
 
@@ -247,12 +270,18 @@ export async function getClicksByWeekday(
 ): Promise<WeekdayPoint[]> {
   const result: WeekdayPoint[] = WEEKDAYS.map((day) => ({ day, clicks: 0 }));
   if (!linkIds.length) return result;
-  const rows = await prisma.linkEvent.groupBy({
-    by: ["dayOfWeek"],
-    where: whereClause({ linkIds }),
-    _count: { _all: true },
-  });
-  for (const r of rows) result[r.dayOfWeek].clicks = r._count._all;
+  const off = offsetMinutes();
+  // Day-of-week in the display timezone (0 = Sunday). Postgres DOW matches JS.
+  const rows = await prisma.$queryRaw<{ dow: number; clicks: bigint }[]>`
+    SELECT EXTRACT(DOW FROM "timestamp" + make_interval(mins => ${off}))::int AS dow,
+           COUNT(*)::bigint AS clicks
+    FROM "link_events"
+    WHERE "linkId" = ANY(${linkIds}) AND "isBot" = false
+    GROUP BY 1
+  `;
+  for (const r of rows) {
+    if (result[r.dow]) result[r.dow].clicks = Number(r.clicks);
+  }
   // Reorder Mon-first for display.
   return [...result.slice(1), result[0]];
 }
