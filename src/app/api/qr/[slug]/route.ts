@@ -6,9 +6,9 @@ import { shortUrl } from "@/lib/utils";
 export const runtime = "nodejs";
 
 /**
- * Public QR code for a slug. This encodes only the public short URL (no
- * sensitive data), so it needs no authentication — it is used by the
- * anonymous link-creation flow. Returns 404 for unknown slugs.
+ * 슬러그에 대한 공개 QR 코드 이미지(PNG)를 만들어 준다. QR에는 공개 짧은 주소만
+ * 담기므로(민감 정보 없음) 인증이 필요 없다. 없는 슬러그면 404를 준다.
+ * ?download=1 을 붙이면 파일로 저장되도록 헤더를 바꾼다.
  */
 export async function GET(
   req: NextRequest,

@@ -10,8 +10,9 @@ import { handleZodError, jsonError, jsonOk } from "@/lib/api";
 export const runtime = "nodejs";
 
 /**
- * Public, no-account link creation. Hardened rate limits; anonymous links are
- * managed via the returned `manageUrl` token (there is no login session).
+ * 계정 없이 링크를 만드는 공개 API(프로그램에서 호출하는 용도). POST로 JSON을 받는다.
+ * 만들어진 익명 링크는 응답의 manageUrl 안 토큰으로 관리한다(로그인 세션이 없으므로).
+ * 사람이 쓰는 랜딩 폼보다 더 빡빡한 속도 제한을 건다(분당 5개, 시간당 30개).
  */
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req) ?? "unknown";

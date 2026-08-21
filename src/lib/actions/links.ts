@@ -1,5 +1,9 @@
+// 로그인 사용자(작업공간)의 링크를 만들고/수정하고/상태변경/삭제하는 서버 액션 모음.
+// 모든 함수는 먼저 requireUser()로 "내 작업공간"임을 확인한 뒤 동작한다.
+// ActionResult = 화면에 결과를 알려주기 위한 공통 응답 모양 { ok, error?, data? }.
 "use server";
 
+// revalidatePath = 데이터가 바뀌었으니 해당 페이지 캐시를 새로 고치라는 지시.
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import {
@@ -63,7 +67,8 @@ export async function createLinkAction(
     return { ok: false, error: parsed.error.errors[0]?.message };
   }
 
-  // Validate the image up front so we never create a link and *then* fail.
+  // 이미지가 있으면 링크를 만들기 "전에" 먼저 검사한다. 링크를 만든 뒤 이미지에서
+  // 실패하면 슬러그만 낭비되기 때문.
   const file = formData.get("image");
   const hasImage = file instanceof File && file.size > 0;
   if (hasImage) {
@@ -79,8 +84,8 @@ export async function createLinkAction(
     return { ok: false, error: "Could not create the link." };
   }
 
-  // The link exists now; a later storage failure must not report the whole
-  // creation as failed (it would strand a slug). Surface it as a warning.
+  // 링크는 이미 만들어졌다. 이제 와서 이미지 업로드가 실패해도 "생성 실패"로 보고하면
+  // 안 된다(슬러그가 붕 뜨게 됨). 대신 경고(warning)로만 알린다.
   let warning: string | undefined;
   if (hasImage) {
     try {
@@ -166,13 +171,15 @@ export async function deleteLinkAction(id: string): Promise<ActionResult> {
   }
 }
 
+// 링크에 이미지를 붙인다(스토리지에 업로드 후 DB에 정보 저장). 이미 이미지가 있으면
+// 먼저 지우고 새로 올린다(upsert = 있으면 갱신, 없으면 생성).
 async function attachImage(
   userId: string,
   linkId: string,
   file: File,
   alt: FormDataEntryValue | null,
 ) {
-  // Remove any previous image first.
+  // 기존 이미지가 있으면 스토리지에서 먼저 삭제(쓰레기 파일이 남지 않게).
   const existing = await prisma.linkImage.findUnique({ where: { linkId } });
   if (existing?.url) await deleteImage(existing.url);
 

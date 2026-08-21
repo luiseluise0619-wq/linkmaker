@@ -1,3 +1,5 @@
+// 랜딩 페이지에서 "링크 줄이기"를 눌렀을 때 실행되는 서버 액션.
+// 로그인 없이도 익명 작업공간을 자동으로 만들어 곧바로 대시보드를 준다.
 "use server";
 
 import { randomBytes } from "crypto";
@@ -44,7 +46,7 @@ export async function createPublicLinkAction(
   formData: FormData,
 ): Promise<PublicLinkState> {
   const ip = clientIp();
-  // Generous limits so normal/repeated use is never blocked; still caps abuse.
+  // 남용 방지(분당 30개, 시간당 300개). 넉넉해서 정상 사용은 막히지 않는다.
   const perMinute = rateLimit(`pub:min:${ip}`, 30, 60_000);
   const perHour = rateLimit(`pub:hour:${ip}`, 300, 60 * 60_000);
   if (!perMinute.success || !perHour.success) {
@@ -63,12 +65,12 @@ export async function createPublicLinkAction(
     return { ok: false, error: parsed.error.errors[0]?.message };
   }
 
-  // Validate the destination BEFORE provisioning anything, so invalid input
-  // never creates an orphaned guest account.
+  // 작업공간을 만들기 "전에" 목적지 URL을 먼저 검사한다. 그래야 잘못된 입력으로
+  // 주인 없는 빈 게스트 계정이 생기는 낭비를 막는다.
   const dest = validateDestinationUrl(parsed.data.destinationUrl);
   if (!dest.ok) return { ok: false, error: dest.error };
 
-  // Reuse the current workspace, or provision one so they get a dashboard.
+  // 이미 세션이 있으면 그 작업공간을 재사용하고, 없으면 새로 하나 만들어 준다.
   const existing = await getSessionUser();
   let userId: string;
   let dashboardToken: string;
