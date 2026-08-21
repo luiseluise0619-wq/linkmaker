@@ -25,9 +25,12 @@ import { Separator } from "@/components/ui/separator";
 export const metadata: Metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
 
+// 설정 페이지. 서버 컴포넌트(async): 대시보드 링크, 사용량(링크·클릭 수), CSV 내보내기,
+// 통계 초기화, 전체 삭제, 개인정보/보관기간, 새 작업공간 시작을 한데 모아 보여준다.
 export default async function SettingsPage() {
   const t = getT();
   const user = await requireUser();
+  // 여러 조회를 Promise.all로 동시에 실행(하나씩 기다리지 않아 더 빠름).
   const [token, linkCount, eventCount] = await Promise.all([
     getDashboardToken(user.id),
     prisma.link.count({ where: { userId: user.id } }),

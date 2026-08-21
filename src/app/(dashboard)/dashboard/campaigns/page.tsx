@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge";
 export const metadata: Metadata = { title: "Campaigns" };
 export const dynamic = "force-dynamic";
 
+// 캠페인 목록 페이지. 서버 컴포넌트(async): 로그인 확인 후 이 작업공간의 캠페인들과
+// 각 캠페인의 링크 수·클릭 수를 계산해 카드로 보여준다.
 export default async function CampaignsPage() {
   const t = getT();
   const user = await requireUser();
@@ -31,7 +33,7 @@ export default async function CampaignsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // Aggregate clicks per campaign.
+  // 캠페인별 클릭수 합계 계산: 링크별 클릭수를 구한 뒤, 각 링크가 속한 캠페인끼리 더한다.
   const clickCounts = await prisma.linkEvent.groupBy({
     by: ["linkId"],
     where: { link: { userId: user.id, campaignId: { not: null } } },

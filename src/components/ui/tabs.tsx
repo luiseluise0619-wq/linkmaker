@@ -1,3 +1,6 @@
+// 탭 UI 부품 모음(Tabs/TabsList/TabsTrigger/TabsContent).
+// Radix UI(@radix-ui/react-tabs)의 접근성 좋은 탭 기능에 우리 앱의 스타일(className)만
+// 입힌 얇은 래퍼다. forwardRef는 부모가 이 요소의 실제 DOM에 접근할 수 있게 해 준다.
 "use client";
 
 import * as React from "react";

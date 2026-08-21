@@ -1,3 +1,7 @@
+// 공개 통계 페이지(/s/슬러그?t=토큰). 로그인 없이도 "올바른 토큰(t)"만 있으면 그 링크의
+// 통계를 볼 수 있게 하는 공유용 페이지. 익명으로 링크를 만든 사람이 통계 링크를 공유할 때 사용.
+// 서버 컴포넌트: 토큰을 검증(getPublicLinkByToken)해 맞을 때만 통계를 보여준다.
+// metadata의 robots: index:false → 검색엔진에 노출되지 않게 한다.
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ExternalLink, Lock } from "lucide-react";

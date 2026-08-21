@@ -11,6 +11,9 @@ import { LinkForm } from "@/components/dashboard/link-form";
 export const metadata: Metadata = { title: "Edit link" };
 export const dynamic = "force-dynamic";
 
+// 링크 "수정" 페이지. 서버 컴포넌트(async). 주소의 slug로 링크를 찾되, 반드시 내 소유여야
+// 한다(getOwnedLinkBySlug). 없거나 내 것이 아니면 notFound()로 404 처리.
+// 찾은 링크의 현재 값들을 LinkForm에 initial로 넘겨 수정 폼을 채운다.
 export default async function EditLinkPage({
   params,
 }: {

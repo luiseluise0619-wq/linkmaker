@@ -26,6 +26,8 @@ import {
 export const metadata: Metadata = { title: "Link analytics" };
 export const dynamic = "force-dynamic";
 
+// 링크 한 개의 상세/분석 페이지. 서버 컴포넌트(async): 내 소유 링크를 찾고(없으면 404),
+// 그 링크의 통계(getLinkAnalytics)를 계산해 KPI 카드·추이 그래프·분류 섹션으로 보여준다.
 export default async function LinkDetailPage({
   params,
 }: {

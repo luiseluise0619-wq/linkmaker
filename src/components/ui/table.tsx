@@ -1,3 +1,6 @@
+// 표(table) UI 부품 모음(Table/TableHeader/TableBody/TableRow/TableCell 등).
+// 평범한 HTML <table> 태그들에 우리 앱의 스타일만 입힌 얇은 래퍼다.
+// 링크 목록 같은 표를 만들 때 사용한다.
 import * as React from "react";
 import { cn } from "@/lib/utils";
 

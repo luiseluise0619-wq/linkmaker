@@ -1,3 +1,6 @@
+// 짧은 링크를 열 수 없을 때 보여주는 안내 페이지.
+// 리다이렉트 라우트(/go/[slug])가 ?reason=notfound|disabled|expired 를 붙여 여기로 보낸다.
+// 그 이유(reason)에 맞는 아이콘·제목·설명을 골라 보여준다. 서버 컴포넌트.
 import Link from "next/link";
 import { AlertTriangle, Ban, Clock, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";

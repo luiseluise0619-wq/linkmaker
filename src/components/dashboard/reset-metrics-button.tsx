@@ -1,3 +1,5 @@
+// 설정 화면의 "통계 초기화" 버튼. 확인 창을 띄운 뒤 서버 액션(resetMetricsAction)을
+// 호출해 클릭 기록만 지운다(링크는 그대로). 클라이언트 컴포넌트(창·진행중·토스트 처리).
 "use client";
 
 import * as React from "react";

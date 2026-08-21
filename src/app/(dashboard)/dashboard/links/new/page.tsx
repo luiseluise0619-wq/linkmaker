@@ -1,3 +1,5 @@
+// "새 링크 만들기" 페이지. 서버 컴포넌트(async): 먼저 로그인 확인(requireUser) 후,
+// 이 작업공간의 캠페인 목록을 DB에서 가져와 폼(CreateLinkView)에 넘긴다.
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
