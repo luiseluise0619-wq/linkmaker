@@ -1,3 +1,7 @@
+// 링크 목록에서 각 줄 오른쪽의 "⋯"(더보기) 버튼과 그 메뉴.
+// 메뉴 항목: 분석 보기 / 수정 / URL 복사 / QR / 새 탭에서 열기 / 사용중지·재개 / 삭제.
+// 삭제는 실수 방지를 위해 확인 창을 한 번 더 띄운다.
+// 클라이언트 컴포넌트: 메뉴·다이얼로그 열림 상태, 진행중 표시, 토스트 알림을 다룬다.
 "use client";
 
 import * as React from "react";
@@ -56,6 +60,7 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
     }
   }
 
+  // 링크를 켜고/끄기(활성 ↔ 비활성). 끄면 그 링크를 열려는 사람은 안내 페이지로 감.
   async function toggleStatus() {
     setPending(true);
     const res = await setStatusAction(id, !disabled);

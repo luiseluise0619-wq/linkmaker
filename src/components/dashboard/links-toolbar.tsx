@@ -1,3 +1,6 @@
+// 링크 목록 위의 검색창 + 필터(상태별) + 정렬 선택 도구모음.
+// 클라이언트 컴포넌트: 입력·선택을 주소의 쿼리스트링(?q=..&filter=..&sort=..)으로 바꾸면,
+// 서버가 그 조건으로 목록을 다시 그려 준다.
 "use client";
 
 import * as React from "react";
@@ -6,6 +9,7 @@ import { Search } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
 import { Input } from "@/components/ui/input";
 
+// value=실제 필터 값, labelKey=화면에 보일 문구의 번역 키.
 const FILTERS = [
   { value: "all", labelKey: "links.filterAll" },
   { value: "active", labelKey: "links.filterActive" },
@@ -30,6 +34,8 @@ export function LinksToolbar() {
   const params = useSearchParams();
   const [q, setQ] = React.useState(params.get("q") ?? "");
 
+  // 현재 쿼리스트링에 변경 항목을 반영해 새 주소로 이동한다.
+  // 조건이 바뀌면 1페이지부터 봐야 하므로 page는 지운다.
   function push(next: Record<string, string>) {
     const sp = new URLSearchParams(params.toString());
     for (const [k, v] of Object.entries(next)) {

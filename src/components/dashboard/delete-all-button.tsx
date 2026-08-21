@@ -1,3 +1,6 @@
+// 설정 화면의 "모든 링크 삭제" 위험 버튼. 실수 방지를 위해 먼저 확인 창(다이얼로그)을
+// 띄우고, 확인해야 서버 액션(deleteAllLinksAction)을 호출한다.
+// 클라이언트 컴포넌트: 창 열림·진행중 상태, 결과 토스트, 화면 새로고침을 다룬다.
 "use client";
 
 import * as React from "react";
@@ -24,6 +27,7 @@ export function DeleteAllLinksButton() {
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
+  // 확인 버튼을 눌렀을 때: 서버에 삭제 요청 → 결과에 따라 토스트로 알리고 화면 갱신.
   async function run() {
     setPending(true);
     const res = await deleteAllLinksAction();

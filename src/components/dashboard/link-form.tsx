@@ -1,3 +1,10 @@
+// 링크 "만들기/수정" 폼. 목적지 URL, 슬러그, 제목/설명, 캠페인, 만료일, 이미지, UTM,
+// 상태(활성/비활성)를 한 화면에서 입력한다. 클라이언트 컴포넌트(입력·미리보기·토글이 많음).
+//
+// [핵심 개념]
+// - useFormState: 폼을 제출하면 서버 액션을 호출하고, 그 결과(state)를 돌려받는다.
+// - useFormStatus: 지금 제출이 진행 중인지(pending) 알려줘 버튼을 "저장 중..."으로 바꾼다.
+// - 만료일은 사용자에겐 "내 지역 시간"으로 보여주되, 서버엔 UTC로 보내 시차 혼동을 막는다.
 "use client";
 
 import * as React from "react";
@@ -32,8 +39,9 @@ import {
 } from "@/lib/actions/links";
 import { cn } from "@/lib/utils";
 
-/** Convert a stored UTC ISO instant to a `datetime-local` value in the
- * viewer's local timezone (YYYY-MM-DDTHH:mm). */
+/** DB에 저장된 UTC 시각(ISO 문자열)을, 화면의 날짜/시간 입력칸(datetime-local)이
+ * 이해하는 "사용자 지역 시간" 문자열(YYYY-MM-DDTHH:mm)로 바꾼다.
+ * getTimezoneOffset()으로 지역 시차를 빼서 지역 벽시계 값을 만든다. */
 function toLocalInputValue(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -72,6 +80,8 @@ interface LinkFormProps {
   onCreated?: (data: { id: string; slug: string; shortUrl: string }) => void;
 }
 
+// 제출 버튼만 따로 컴포넌트로 뺀 이유: useFormStatus()는 <form> 안에서만 동작해서,
+// 폼 내부의 이 버튼이 "제출 중"인지 스스로 알 수 있다.
 function SubmitButton({ mode }: { mode: "create" | "edit" }) {
   const { pending } = useFormStatus();
   const t = useT();
@@ -96,6 +106,9 @@ export function LinkForm({
   const router = useRouter();
   const { toast } = useToast();
   const t = useT();
+  // 만들기 모드면 생성 액션, 수정 모드면 수정 액션을 쓴다.
+  // formAction을 <form action={...}>에 연결하면 제출 시 서버에서 그 함수가 실행되고,
+  // 결과가 state로 들어온다(초기값은 { ok: false }).
   const action = mode === "create" ? createLinkAction : updateLinkAction;
   const [state, formAction] = useFormState<ActionResult, FormData>(action, {
     ok: false,
@@ -139,6 +152,7 @@ export function LinkForm({
 
   const slugChanged = mode === "edit" && slug !== initial?.slug;
 
+  // 제출 결과(state)가 바뀔 때마다 실행: 성공/실패에 따라 토스트를 띄우고 화면을 이동/갱신.
   React.useEffect(() => {
     if (!state.ok) return;
     if (mode === "create") {

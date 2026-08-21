@@ -1,3 +1,5 @@
+// QR 코드를 보여주는 팝업(다이얼로그). QR 이미지는 서버의 /api/links/[id]/qr 에서 받아온다.
+// PNG로 저장하거나 짧은 주소를 복사할 수 있다. 클라이언트 컴포넌트(팝업 상호작용).
 "use client";
 
 import * as React from "react";
