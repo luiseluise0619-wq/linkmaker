@@ -150,6 +150,8 @@ export default async function AnalyticsPage({
             cities: data.cities,
             referrers: data.referrers,
             utm: data.utm,
+            utmSources: data.utmSources,
+            utmMediums: data.utmMediums,
             source: data.source,
           }}
         />

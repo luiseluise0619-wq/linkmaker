@@ -300,7 +300,9 @@ async function genericBreakdown(
     | "country"
     | "city"
     | "referrerDomain"
-    | "utmCampaign",
+    | "utmCampaign"
+    | "utmSource"
+    | "utmMedium",
   limit = 8,
 ): Promise<Breakdown[]> {
   if (!linkIds.length) return [];
@@ -330,6 +332,10 @@ export const getReferrerBreakdown = (ids: string[]) =>
   genericBreakdown(ids, "referrerDomain");
 export const getUtmCampaignBreakdown = (ids: string[]) =>
   genericBreakdown(ids, "utmCampaign");
+export const getUtmSourceBreakdown = (ids: string[]) =>
+  genericBreakdown(ids, "utmSource");
+export const getUtmMediumBreakdown = (ids: string[]) =>
+  genericBreakdown(ids, "utmMedium");
 
 export interface SourceSplit {
   link: number;
@@ -468,6 +474,8 @@ export async function getAccountAnalytics(
     cities,
     referrers,
     utm,
+    utmSources,
+    utmMediums,
     topLinks,
     source,
   ] = await Promise.all([
@@ -482,6 +490,8 @@ export async function getAccountAnalytics(
     getCityBreakdown(linkIds),
     getReferrerBreakdown(linkIds),
     getUtmCampaignBreakdown(linkIds),
+    getUtmSourceBreakdown(linkIds),
+    getUtmMediumBreakdown(linkIds),
     getTopLinks(userId, topSort, 10),
     getSourceSplit(linkIds),
   ]);
@@ -498,6 +508,8 @@ export async function getAccountAnalytics(
     cities,
     referrers,
     utm,
+    utmSources,
+    utmMediums,
     topLinks,
     source,
   };
@@ -518,6 +530,8 @@ export async function getLinkAnalytics(linkId: string) {
     cities,
     referrers,
     utm,
+    utmSources,
+    utmMediums,
     source,
   ] = await Promise.all([
     getCoreCounts(linkIds),
@@ -531,6 +545,8 @@ export async function getLinkAnalytics(linkId: string) {
     getCityBreakdown(linkIds),
     getReferrerBreakdown(linkIds),
     getUtmCampaignBreakdown(linkIds),
+    getUtmSourceBreakdown(linkIds),
+    getUtmMediumBreakdown(linkIds),
     getSourceSplit(linkIds),
   ]);
   return {
@@ -545,6 +561,8 @@ export async function getLinkAnalytics(linkId: string) {
     cities,
     referrers,
     utm,
+    utmSources,
+    utmMediums,
     source,
   };
 }

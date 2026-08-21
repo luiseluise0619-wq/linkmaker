@@ -118,12 +118,34 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
         </Card>
         <Card>
           <CardHeader>
+            <CardTitle>UTM source</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BreakdownList
+              data={analytics.utmSources}
+              emptyMessage="No UTM source data yet"
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>UTM medium</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BreakdownList
+              data={analytics.utmMediums}
+              emptyMessage="No UTM medium data yet"
+            />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
             <CardTitle>UTM campaigns</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={analytics.utm}
-              emptyMessage="No UTM data yet"
+              emptyMessage="No UTM campaign data yet"
             />
           </CardContent>
         </Card>

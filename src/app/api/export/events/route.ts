@@ -45,6 +45,8 @@ export async function GET() {
       utmSource: string | null;
       utmMedium: string | null;
       utmCampaign: string | null;
+      utmTerm: string | null;
+      utmContent: string | null;
     }[]
   >`
     SELECT e."timestamp", l.slug, e."deviceType"::text AS "deviceType",
@@ -53,7 +55,8 @@ export async function GET() {
            e."referrerDomain", e.country, e.region, e.city, e.timezone,
            e.language, e.source::text AS source,
            e."isBot", e.hour, e."dayOfWeek",
-           e."utmSource", e."utmMedium", e."utmCampaign"
+           e."utmSource", e."utmMedium", e."utmCampaign",
+           e."utmTerm", e."utmContent"
     FROM "link_events" e
     JOIN "links" l ON e."linkId" = l.id
     WHERE l."userId" = ${user.id}
@@ -87,6 +90,8 @@ export async function GET() {
       "UTM source",
       "UTM medium",
       "UTM campaign",
+      "UTM term",
+      "UTM content",
     ],
     rows.map((r) => [
       r.timestamp,
@@ -113,6 +118,8 @@ export async function GET() {
       r.utmSource,
       r.utmMedium,
       r.utmCampaign,
+      r.utmTerm,
+      r.utmContent,
     ]),
   );
 
