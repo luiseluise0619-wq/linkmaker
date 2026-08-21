@@ -306,16 +306,24 @@ async function genericBreakdown(
   limit = 8,
 ): Promise<Breakdown[]> {
   if (!linkIds.length) return [];
-  const rows = await prisma.linkEvent.groupBy({
-    by: [field],
-    where: whereClause({ linkIds }),
-    _count: { _all: true },
-    orderBy: { _count: { [field]: "desc" } },
-    take: limit,
-  });
+  // Raw SQL so we can order by the TOTAL click count (COUNT(*)) and keep the
+  // NULL/"Unknown" group ranked by its real size. (Prisma groupBy could only
+  // order by the grouped field's non-null count, which sorts the — often
+  // largest — null bucket to the bottom and drops it from the top-N.)
+  // `field` comes from the fixed union above, never user input, so raw column
+  // interpolation is safe.
+  const col = Prisma.raw(`"${field}"`);
+  const rows = await prisma.$queryRaw<{ label: string | null; clicks: bigint }[]>`
+    SELECT ${col}::text AS label, COUNT(*)::bigint AS clicks
+    FROM "link_events"
+    WHERE "linkId" = ANY(${linkIds}) AND "isBot" = false
+    GROUP BY ${col}
+    ORDER BY clicks DESC
+    LIMIT ${limit}
+  `;
   return rows.map((r) => ({
-    label: (r[field] as string | null) ?? "Unknown",
-    clicks: r._count._all,
+    label: r.label ?? "Unknown",
+    clicks: Number(r.clicks),
   }));
 }
 

@@ -5,7 +5,11 @@ const BOM = String.fromCharCode(0xfeff);
 
 function escapeCell(value: Cell): string {
   if (value === null || value === undefined) return "";
-  const s = value instanceof Date ? value.toISOString() : String(value);
+  let s = value instanceof Date ? value.toISOString() : String(value);
+  // Prevent CSV formula injection: a leading =, +, -, @ (or tab/CR) can make
+  // Excel/Sheets execute a cell's content as a formula. Neutralize with a
+  // leading apostrophe.
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }

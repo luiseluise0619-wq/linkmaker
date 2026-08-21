@@ -10,9 +10,11 @@ export default async function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Warm the (possibly auto-suspended) database on site entry so the first
-  // link creation / dashboard load is fast. Runs alongside the session read.
-  const [user] = await Promise.all([getSessionUser(), warmDb()]);
+  // Fire-and-forget: kick off a DB wake-up on site entry (the connection
+  // attempt starts the wake) WITHOUT blocking the landing page render on a
+  // cold/suspended database. warmDb swallows its own errors.
+  void warmDb();
+  const user = await getSessionUser();
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">

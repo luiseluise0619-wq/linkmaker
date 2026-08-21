@@ -100,62 +100,68 @@ export async function GET(
   const destination = applyUtm(link.destinationUrl, link);
   const isQr = req.nextUrl.searchParams.get("qr") === "1";
   const geo = getGeo(req);
+  const linkForEvent = link;
 
-  // Record analytics. Awaited but wrapped so a logging failure never blocks
-  // the redirect; the insert is a single lightweight write.
-  try {
-    const event = collectEvent({
-      userAgentHeader: req.headers.get("user-agent"),
-      referrerHeader: req.headers.get("referer"),
-      languageHeader: req.headers.get("accept-language"),
-      country: geo.country,
-      region: geo.region,
-      city: geo.city,
-      timezone: geo.timezone,
-      ip,
-      isQr,
-      linkId: link.id,
-      salt: await getAnalyticsSalt(),
-    });
-    await prisma.linkEvent.create({
-      data: {
-        linkId: link.id,
-        timestamp: event.timestamp,
-        date: event.date,
-        hour: event.hour,
-        dayOfWeek: event.dayOfWeek,
-        referrer: event.referrer,
-        referrerDomain: event.referrerDomain,
-        userAgent: event.userAgent,
-        browser: event.browser,
-        browserVersion: event.browserVersion,
-        engine: event.engine,
-        os: event.os,
-        osVersion: event.osVersion,
-        deviceType: event.deviceType,
-        deviceVendor: event.deviceVendor,
-        deviceModel: event.deviceModel,
-        cpuArch: event.cpuArch,
-        isMobile: event.isMobile,
-        language: event.language,
-        country: event.country,
-        region: event.region,
-        city: event.city,
-        timezone: event.timezone,
-        utmSource: link.utmSource,
-        utmMedium: link.utmMedium,
-        utmCampaign: link.utmCampaign,
-        utmTerm: link.utmTerm,
-        utmContent: link.utmContent,
-        source: event.source,
-        isBot: event.isBot,
-        botReason: event.botReason,
-        visitorHash: event.visitorHash,
-      },
-    });
-  } catch {
-    // swallow — never break the user's redirect on analytics failure.
-  }
+  // Record analytics, but cap the wait so it can never delay the redirect past
+  // the function's time budget (the lookup above already woke the DB, so this
+  // is normally a fast warm write). Failures are swallowed — analytics is
+  // best-effort and must never break a redirect.
+  const recordEvent = async () => {
+    try {
+      const event = collectEvent({
+        userAgentHeader: req.headers.get("user-agent"),
+        referrerHeader: req.headers.get("referer"),
+        languageHeader: req.headers.get("accept-language"),
+        country: geo.country,
+        region: geo.region,
+        city: geo.city,
+        timezone: geo.timezone,
+        ip,
+        isQr,
+        linkId: linkForEvent.id,
+        salt: await getAnalyticsSalt(),
+      });
+      await prisma.linkEvent.create({
+        data: {
+          linkId: linkForEvent.id,
+          timestamp: event.timestamp,
+          date: event.date,
+          hour: event.hour,
+          dayOfWeek: event.dayOfWeek,
+          referrer: event.referrer,
+          referrerDomain: event.referrerDomain,
+          userAgent: event.userAgent,
+          browser: event.browser,
+          browserVersion: event.browserVersion,
+          engine: event.engine,
+          os: event.os,
+          osVersion: event.osVersion,
+          deviceType: event.deviceType,
+          deviceVendor: event.deviceVendor,
+          deviceModel: event.deviceModel,
+          cpuArch: event.cpuArch,
+          isMobile: event.isMobile,
+          language: event.language,
+          country: event.country,
+          region: event.region,
+          city: event.city,
+          timezone: event.timezone,
+          utmSource: linkForEvent.utmSource,
+          utmMedium: linkForEvent.utmMedium,
+          utmCampaign: linkForEvent.utmCampaign,
+          utmTerm: linkForEvent.utmTerm,
+          utmContent: linkForEvent.utmContent,
+          source: event.source,
+          isBot: event.isBot,
+          botReason: event.botReason,
+          visitorHash: event.visitorHash,
+        },
+      });
+    } catch {
+      // swallow — analytics is best-effort
+    }
+  };
+  await Promise.race([recordEvent(), sleep(2500)]);
 
   return NextResponse.redirect(destination, {
     status: 302,
