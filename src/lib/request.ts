@@ -1,8 +1,12 @@
 import type { NextRequest } from "next/server";
 
 /**
- * Extract a best-effort client IP for rate limiting and (hashed, never stored
- * raw) unique-visitor estimation. Prefers standard proxy headers.
+ * 방문자의 IP 주소를 최대한 알아낸다(속도 제한과, 되돌릴 수 없게 해시한 방문자 추정에 사용).
+ *
+ * [왜 헤더에서 읽나?] 서버 앞에는 보통 프록시/CDN(예: Vercel)이 있어서, 실제 접속자
+ * IP가 요청 헤더에 담겨 전달된다. `x-real-ip`는 플랫폼이 직접 넣어주는 신뢰할 수 있는
+ * 값이라 먼저 사용한다. `x-forwarded-for`의 맨 앞 값은 클라이언트가 위조할 수 있어
+ * 신뢰 헤더가 없을 때만 보조로 쓴다.
  */
 export function getClientIp(req: NextRequest): string | null {
   // Prefer x-real-ip: on Vercel (and typical reverse proxies) it is set by the

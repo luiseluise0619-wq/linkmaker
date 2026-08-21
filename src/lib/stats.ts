@@ -3,28 +3,37 @@ import { prisma } from "./prisma";
 import { displayOffsetMinutes } from "./utils";
 
 /**
- * Analytics aggregation helpers.
+ * 통계 집계 함수 모음. 대시보드의 모든 숫자·그래프는 이 파일의 함수들이 link_events
+ * 표를 세고 묶어서 만든다.
  *
- * Convention: "clicks" and "visitors" metrics count HUMAN (non-bot) events by
- * default. Bot counts are surfaced separately and labeled as estimates.
+ * [기본 규칙] "클릭수"와 "방문자"는 기본적으로 사람(봇 제외) 이벤트만 센다. 봇 수치는
+ * 따로 보여주고 "추정치"로 표시한다.
  *
- * Events are stored in UTC, but all day/hour/weekday bucketing and boundaries
- * are computed in the DISPLAY timezone (Asia/Seoul by default) so the
- * dashboard reads in local — e.g. Korean — time.
+ * [시간대 처리 — 초보자 주의] 클릭 시각은 DB에 UTC(세계 표준시)로 저장된다. 하지만
+ * 대시보드는 한국 시간(기본 Asia/Seoul)으로 보여야 하므로, 날짜/시간/요일로 묶을 때
+ * UTC 값에 시차(+9시간)를 더해 "현지 시각"으로 바꾼 뒤 계산한다.
  */
 
 export type TimelineRange = "24h" | "7d" | "30d" | "90d";
 
-/** Offset (minutes) from UTC to the display timezone right now. */
+/** 지금 기준, UTC와 표시 시간대의 시차(분). 서울이면 +540분(=9시간). */
 function offsetMinutes(): number {
   return displayOffsetMinutes();
 }
 
-/** Real UTC instant for a local-time boundary N days before "today" (local),
- * at local midnight; or, for 24h, N hours before the current local hour. */
+/**
+ * 그래프의 시작 시각(현지 기준)을 "실제 UTC 시각"으로 계산해 돌려준다.
+ *
+ * [트릭] JS Date에는 "특정 시간대"라는 개념이 약해서, 이렇게 처리한다:
+ *   1) 현재 시각에 시차를 더하면(now + offMs) 시곗바늘이 현지 시각을 가리키게 된다.
+ *      (단, JS는 이걸 여전히 UTC로 여긴다 → "현지 시각을 UTC인 척" 다룬다.)
+ *   2) 그 상태에서 자정/정시로 맞춘다(현지 기준 경계).
+ *   3) 마지막에 시차를 다시 빼서(-offMs) 진짜 UTC 시각으로 되돌린다.
+ * 예: 7d면 "6일 전 현지 자정"에 해당하는 실제 UTC 시각을 반환.
+ */
 function startOf(range: TimelineRange): Date {
   const offMs = offsetMinutes() * 60000;
-  // "local" is the current wall clock in the display TZ, expressed as-if-UTC.
+  // "local" = 지금의 현지 시각을 UTC인 척 담은 값.
   const local = new Date(Date.now() + offMs);
   switch (range) {
     case "24h":
@@ -55,7 +64,7 @@ function daysAgo(n: number): Date {
   return new Date(local.getTime() - offMs);
 }
 
-/** SQL fragment restricting to a user's links (parameterized). */
+/** 특정 사용자가 소유한 모든 링크의 id 목록을 가져온다(그 사용자 통계만 보기 위함). */
 async function linkIdsForUser(userId: string): Promise<string[]> {
   const links = await prisma.link.findMany({
     where: { userId },
@@ -188,8 +197,8 @@ export async function getTimeline(
   range: TimelineRange,
 ): Promise<TimelinePoint[]> {
   if (!linkIds.length) return [];
-  const since = startOf(range);
-  const hourly = range === "24h";
+  const since = startOf(range); // 이 시각 이후의 클릭만 집계
+  const hourly = range === "24h"; // 24시간이면 시간별, 아니면 일별로 묶음
   const off = offsetMinutes();
   // Shift the stored UTC value into the display timezone's wall clock (by
   // adding the offset) BEFORE truncating, so days/hours bucket in local time.
@@ -206,6 +215,7 @@ export async function getTimeline(
     GROUP BY bucket
     ORDER BY bucket ASC
   `;
+  // SQL 결과를 "시간키 → 클릭수" 지도로 만든다(예: "2026-08-21" → 12).
   const map = new Map<string, number>();
   for (const r of rows) {
     const key = hourly
@@ -213,7 +223,8 @@ export async function getTimeline(
       : r.bucket.toISOString().slice(0, 10);
     map.set(key, Number(r.clicks));
   }
-  // Iterate in local-as-UTC space (shift the real boundaries by the offset).
+  // [빈 구간 채우기] 클릭이 0인 날/시간은 SQL 결과에 아예 없다. 그래프가 끊기지 않게
+  // 시작~끝까지 모든 구간을 순회하며, 없는 구간은 clicks: 0으로 채워 넣는다.
   const offMs = off * 60000;
   const points: TimelinePoint[] = [];
   const cursor = new Date(since.getTime() + offMs);

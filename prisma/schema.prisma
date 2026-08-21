@@ -1,13 +1,27 @@
-// LinkMaker — Prisma schema
-// Normalized schema for a link-management + analytics SaaS.
+// LinkMaker — Prisma 스키마(데이터베이스 설계도)
+//
+// [이 파일이 뭐야?] 우리 앱이 DB에 어떤 "표(table)"들을 만들지 정의하는 곳이다.
+// 여기서 model 하나 = DB의 표 하나. 필드 하나 = 표의 열(column) 하나.
+//
+// [표들의 관계, 큰 그림]
+//   User(작업공간)  ──< Link(짧은 링크)  ──< LinkEvent(클릭 1건 기록)
+//        │                    └─ LinkImage(링크에 붙은 이미지, 1:1)
+//        └──< Campaign(링크 묶음/캠페인)
+//   Setting = 앱이 스스로 관리하는 설정값 저장소(비밀키 등).
+//   ──< 표시는 "1 : 여러 개" 관계를 뜻한다(User 하나가 Link 여러 개를 가짐).
+//
+// [자주 나오는 문법]
+//   @id = 기본 키(각 행을 구분하는 고유 번호)   @unique = 값이 중복되면 안 됨
+//   @default(...) = 기본값   ? = 값이 없어도 됨(nullable)   @@index = 검색 속도용 색인
+//   onDelete: Cascade = 부모가 삭제되면 자식도 함께 삭제
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql" // 사용하는 DB 종류
+  url      = env("DATABASE_URL") // 접속 주소는 환경변수에서 읽음(비밀이라 코드에 안 씀)
 }
 
 /// Key/value store for server-managed configuration (e.g. auto-generated
@@ -38,6 +52,7 @@ enum ClickSource {
   QR
 }
 
+// User = "작업공간(workspace)" 하나. 로그인은 없고, 브라우저마다 익명 작업공간을 갖는다.
 model User {
   id           String     @id @default(cuid())
   email        String     @unique
@@ -57,6 +72,7 @@ model User {
   @@map("users")
 }
 
+// Campaign = 링크들을 목적별로 묶는 그룹(예: "여름 이벤트"). 통계를 묶어 보기 좋게.
 model Campaign {
   id          String   @id @default(cuid())
   userId      String
@@ -73,12 +89,14 @@ model Campaign {
   @@map("campaigns")
 }
 
+// Link = 짧은 링크 하나. slug(주소 끝부분)는 그대로 두고 destinationUrl(목적지)만
+// 바꿔치기할 수 있는 게 핵심 — 그래서 링크를 수정해도 통계가 계속 이어진다.
 model Link {
   id             String     @id @default(cuid())
-  userId         String
-  campaignId     String?
-  slug           String     @unique
-  destinationUrl String
+  userId         String // 소유한 작업공간
+  campaignId     String? // 속한 캠페인(없어도 됨)
+  slug           String     @unique // 짧은 주소의 끝부분(고유)
+  destinationUrl String // 실제로 이동할 목적지 주소
   title          String?
   description    String?
   status         LinkStatus @default(ACTIVE)
@@ -129,15 +147,18 @@ model LinkImage {
   @@map("link_images")
 }
 
+// LinkEvent = 클릭(또는 QR 스캔) "1건"의 기록. 링크가 클릭될 때마다 한 줄씩 쌓인다.
+// 대시보드의 모든 통계는 이 표를 세고 묶어서 만든다.
 model LinkEvent {
   id        String   @id @default(cuid())
-  linkId    String
-  timestamp DateTime @default(now())
+  linkId    String // 어떤 링크의 클릭인지
+  timestamp DateTime @default(now()) // 클릭 시각
 
-  // Denormalized time buckets for fast analytics grouping.
+  // 아래 세 값은 timestamp에서 미리 뽑아 저장해 둔 것. 매번 계산하지 않고 바로 묶어
+  // 셀 수 있어 통계가 빨라진다(비정규화, denormalization).
   date      DateTime @db.Date
-  hour      Int // 0-23 (UTC)
-  dayOfWeek Int // 0 (Sun) - 6 (Sat), UTC
+  hour      Int // 0-23 (UTC 기준 시)
+  dayOfWeek Int // 0(일) ~ 6(토), UTC 기준
 
   // Referrer.
   referrer       String?
