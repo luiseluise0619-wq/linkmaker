@@ -1,3 +1,6 @@
+// 오른쪽 위 동그란 아바타(W) 버튼을 누르면 열리는 드롭다운 메뉴.
+// 설정 이동 / 다른 기기에서 열기(대시보드 링크) / 새 작업공간 시작(현재 세션 종료)을 담는다.
+// 클라이언트 컴포넌트: 드롭다운 열고 닫는 상호작용이 필요하다.
 "use client";
 
 import { LogOut, Plus, Settings as SettingsIcon } from "lucide-react";

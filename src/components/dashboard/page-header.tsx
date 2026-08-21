@@ -1,3 +1,5 @@
+// 각 대시보드 페이지 상단의 공통 머리말: 제목 + 설명 + 오른쪽 버튼 영역(actions).
+// 넘겨받은 props만 그리는 단순 컴포넌트라 재사용하기 좋다.
 export function PageHeader({
   title,
   description,

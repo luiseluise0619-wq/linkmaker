@@ -1,3 +1,5 @@
+// 보여줄 데이터가 하나도 없을 때(예: 링크가 아직 0개) 안내 카드를 그리는 컴포넌트.
+// 아이콘 + 제목 + 설명 + (선택) 버튼(action)을 가운데 정렬해 보여준다.
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 

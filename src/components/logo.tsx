@@ -1,3 +1,5 @@
+// 로고(아이콘 + "LinkMaker" 글자). 클릭하면 href로 이동하는 링크다(기본은 홈 "/").
+// "LinkMaker"는 브랜드 이름이라 번역하지 않는다.
 import Link from "next/link";
 import { Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";

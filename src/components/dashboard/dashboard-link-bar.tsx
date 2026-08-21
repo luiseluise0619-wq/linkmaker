@@ -4,9 +4,11 @@ import { LinkIcon } from "lucide-react";
 import { CopyButton } from "@/components/copy-button";
 import { useT } from "@/lib/i18n/client";
 
+// 클라이언트 컴포넌트. 대시보드 상단에 항상 보이는 "내 대시보드 링크" 바.
 /**
- * Persistent reminder of the workspace's portable dashboard link — the only
- * way back to this anonymous dashboard on another device.
+ * 이 작업공간으로 다시 들어올 수 있는 이동식 대시보드 링크를 계속 보여준다.
+ * 로그인이 없으므로, 이 링크가 다른 기기에서 이 대시보드로 돌아오는 유일한 방법이다.
+ * (복사 버튼으로 링크를 복사해 저장해 두라는 의미.)
  */
 export function DashboardLinkBar({ url }: { url: string }) {
   const t = useT();
