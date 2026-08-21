@@ -2,6 +2,9 @@
 
 **Create links. Track clicks. Understand your audience.**
 
+> 📚 **코딩 처음이신가요?** 이 코드베이스를 웹 기초부터 차근차근 공부할 수 있는
+> 아주 자세한 초보자용 한국어 학습 가이드가 있습니다 → [docs/LEARNING.md](docs/LEARNING.md)
+
 LinkMaker is a production-ready, privacy-conscious link management and analytics
 SaaS built with the modern Next.js App Router. Create editable short links,
 image links and QR codes, then measure real traffic in a clean dashboard — with
