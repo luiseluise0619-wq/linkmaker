@@ -9,6 +9,7 @@
 
 const BLOCKED_HOSTNAMES = new Set([
   "localhost",
+  "localhost.localdomain",
   "0.0.0.0",
   "127.0.0.1",
   "::1",
@@ -39,11 +40,20 @@ function isPrivateIpv4(host: string): boolean {
 function isSuspiciousNumericHost(host: string): boolean {
   // Pure decimal integer (e.g. 2130706433 === 127.0.0.1)
   if (/^\d+$/.test(host)) return true;
-  // Any hex or octal-looking component
-  if (/(^|\.)0x[0-9a-f]+/i.test(host)) return true;
-  if (/(^|\.)0\d+/.test(host)) return true;
   // Numeric-only, dot-separated, but not exactly four octets (e.g. 127.1)
   if (/^[\d.]+$/.test(host) && host.split(".").length !== 4) return true;
+  // Hex/octal IP encodings (e.g. 0x7f000001, 0177.0.0.1) only matter when the
+  // host is an IP encoding, never a real domain name. A real domain ends in an
+  // alphabetic TLD; an IP encoding does not. Gate the hex/octal heuristics on
+  // "no alphabetic TLD" so ordinary sites like 01net.com / 0xford.com are not
+  // wrongly rejected while 0x7f000001 / 0177.0.0.1 still are.
+  const labels = host.split(".");
+  const lastLabel = labels[labels.length - 1] ?? "";
+  const hasAlphaTld = /^[a-z]{2,}$/i.test(lastLabel);
+  if (!hasAlphaTld) {
+    if (/(^|\.)0x[0-9a-f]+/i.test(host)) return true;
+    if (/(^|\.)0\d+/.test(host)) return true;
+  }
   return false;
 }
 
@@ -90,7 +100,10 @@ export function validateDestinationUrl(input: string): UrlValidationResult {
     return { ok: false, error: "Only http and https URLs are allowed." };
   }
 
-  const host = parsed.hostname.toLowerCase();
+  // Strip a single trailing dot: `localhost.` / `127.0.0.1.` are valid FQDNs
+  // that resolve to the same host, so normalize before the blocklist/IP checks
+  // (otherwise `http://localhost./` would slip through).
+  const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
   const hostNoBrackets = host.replace(/^\[|\]$/g, "");
   if (
     BLOCKED_HOSTNAMES.has(host) ||

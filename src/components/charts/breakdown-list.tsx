@@ -19,10 +19,10 @@ export function BreakdownList({
 
   return (
     <div className="space-y-3">
-      {data.map((item) => {
+      {data.map((item, i) => {
         const pct = Math.round((item.clicks / total) * 100);
         return (
-          <div key={item.label} className="space-y-1">
+          <div key={`${item.label}-${i}`} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
               <span className="truncate pr-2" title={item.label}>
                 {item.label}

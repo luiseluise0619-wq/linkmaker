@@ -5,7 +5,10 @@
  */
 
 const BOT_PATTERNS: RegExp[] = [
-  /bot\b/i,
+  // Match "…bot" as a crawler-name suffix (Googlebot, AhrefsBot, FooBot/1.0)
+  // but not when it is the tail of a real device brand like CUBOT, which would
+  // otherwise flag genuine phone traffic as a bot.
+  /(?<!cu)bot\b/i,
   /crawl(er|ing)?/i,
   /spider/i,
   /slurp/i,

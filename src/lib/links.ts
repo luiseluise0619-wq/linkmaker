@@ -33,6 +33,10 @@ async function ensurePublicUser() {
       email: "public@linkmaker.local",
       name: "Public",
       passwordHash: "!disabled-no-login!",
+      // Must NOT be a guest: the retention cron prunes isGuest accounts, and
+      // this system account owns every anonymous link. The seed migration
+      // creates it with isGuest=false; keep this fallback consistent.
+      isGuest: false,
     },
   });
 }

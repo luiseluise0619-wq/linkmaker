@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jsonError, jsonOk } from "@/lib/api";
+import { PUBLIC_USER_ID } from "@/lib/links";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,8 +44,12 @@ export async function GET(req: NextRequest) {
   //     (non-bot) click within the retained history.
   // Deleting the user cascades to their links and events.
   const orphanCutoff = new Date(Date.now() - 86400000);
+  // Never prune the system account that owns every anonymous link, even if a
+  // fallback ever created it with the wrong isGuest flag — deleting it would
+  // cascade-delete all no-login links.
   const orphanGuests = await prisma.user.deleteMany({
     where: {
+      id: { not: PUBLIC_USER_ID },
       isGuest: true,
       createdAt: { lt: orphanCutoff },
       links: { none: {} },
@@ -52,6 +57,7 @@ export async function GET(req: NextRequest) {
   });
   const staleGuests = await prisma.user.deleteMany({
     where: {
+      id: { not: PUBLIC_USER_ID },
       isGuest: true,
       createdAt: { lt: cutoff },
       links: { none: { events: { some: { isBot: false } } } },

@@ -5,12 +5,20 @@ import type { NextRequest } from "next/server";
  * raw) unique-visitor estimation. Prefers standard proxy headers.
  */
 export function getClientIp(req: NextRequest): string | null {
+  // Prefer x-real-ip: on Vercel (and typical reverse proxies) it is set by the
+  // platform to the true client IP and cannot be spoofed by the caller. The
+  // left-most x-forwarded-for token, by contrast, is whatever the client sent
+  // (the platform appends to it), so trusting it would let an attacker rotate
+  // the value to defeat the per-IP rate limit. Fall back to XFF only when no
+  // trusted header is present.
+  const realIp = req.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
     if (first) return first;
   }
-  return req.headers.get("x-real-ip") ?? null;
+  return null;
 }
 
 /**
