@@ -14,11 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { useT } from "@/lib/i18n/client";
 import { deleteAllLinksAction } from "@/lib/actions/workspace";
 
 export function DeleteAllLinksButton() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useT();
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
@@ -29,10 +31,10 @@ export function DeleteAllLinksButton() {
     setOpen(false);
     if (res.ok) {
       const n = (res.data as { deleted: number } | undefined)?.deleted ?? 0;
-      toast(`Deleted ${n} link${n === 1 ? "" : "s"}`, "success");
+      toast(t("forms.toastLinksDeleted", { count: n }), "success");
       router.refresh();
     } else {
-      toast(res.error ?? "Could not delete links", "error");
+      toast(res.error ?? t("forms.toastLinksDeleteError"), "error");
     }
   }
 
@@ -41,16 +43,14 @@ export function DeleteAllLinksButton() {
       <DialogTrigger asChild>
         <Button variant="destructive">
           <Trash2 />
-          Delete all links
+          {t("forms.deleteAllLinks")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete all links?</DialogTitle>
+          <DialogTitle>{t("forms.deleteAllLinksTitle")}</DialogTitle>
           <DialogDescription>
-            This permanently deletes every link in this workspace along with all
-            of their click data and images, freeing database space. The short
-            URLs will stop working. This cannot be undone.
+            {t("forms.deleteAllLinksDesc")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -59,10 +59,10 @@ export function DeleteAllLinksButton() {
             onClick={() => setOpen(false)}
             disabled={pending}
           >
-            Cancel
+            {t("forms.cancel")}
           </Button>
           <Button variant="destructive" onClick={run} disabled={pending}>
-            {pending ? "Deleting…" : "Delete everything"}
+            {pending ? t("forms.deleting") : t("forms.deleteEverything")}
           </Button>
         </DialogFooter>
       </DialogContent>

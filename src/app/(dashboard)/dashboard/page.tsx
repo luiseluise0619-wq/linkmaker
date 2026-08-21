@@ -9,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { requireUser } from "@/lib/auth";
+import { getT } from "@/lib/i18n/server";
 import { getDashboardData } from "@/lib/stats";
 import { DISPLAY_TZ, formatNumber, shortUrl } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -29,14 +30,15 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 export const metadata: Metadata = { title: "Dashboard" };
 export const dynamic = "force-dynamic";
 
-const DEVICE_LABELS: Record<string, string> = {
-  MOBILE: "Mobile",
-  DESKTOP: "Desktop",
-  TABLET: "Tablet",
-  UNKNOWN: "Unknown",
+const DEVICE_LABEL_KEYS: Record<string, string> = {
+  MOBILE: "dash.deviceMobile",
+  DESKTOP: "dash.deviceDesktop",
+  TABLET: "dash.deviceTablet",
+  UNKNOWN: "dash.deviceUnknown",
 };
 
 export default async function DashboardPage() {
+  const t = getT();
   const user = await requireUser();
   const data = await getDashboardData(user.id);
   const { counts } = data;
@@ -45,18 +47,18 @@ export default async function DashboardPage() {
     return (
       <>
         <PageHeader
-          title="Dashboard"
-          description="An overview of your links and audience."
+          title={t("dash.pageTitle")}
+          description={t("dash.pageDescription")}
         />
         <EmptyState
           icon={Link2}
-          title="Create your first link"
-          description="You haven't created any links yet. Make a trackable short link and your analytics will appear here."
+          title={t("dash.emptyTitle")}
+          description={t("dash.emptyDescription")}
           action={
             <Button asChild>
               <Link href="/dashboard/links/new">
                 <Plus />
-                Create link
+                {t("dash.createLink")}
               </Link>
             </Button>
           }
@@ -66,20 +68,20 @@ export default async function DashboardPage() {
   }
 
   const devices = data.devices.map((d) => ({
-    label: DEVICE_LABELS[d.label] ?? d.label,
+    label: t(DEVICE_LABEL_KEYS[d.label] ?? d.label),
     clicks: d.clicks,
   }));
 
   return (
     <>
       <PageHeader
-        title="Dashboard"
-        description="An overview of your links and audience."
+        title={t("dash.pageTitle")}
+        description={t("dash.pageDescription")}
         actions={
           <Button asChild>
             <Link href="/dashboard/links/new">
               <Plus />
-              New link
+              {t("dash.newLink")}
             </Link>
           </Button>
         }
@@ -87,28 +89,29 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard
-          label="Total clicks"
+          label={t("dash.totalClicks")}
           value={formatNumber(counts.totalClicks)}
           icon={MousePointerClick}
-          hint={`${formatNumber(counts.humanClicks)} human · ${formatNumber(
-            counts.botClicks,
-          )} bot`}
+          hint={t("dash.clicksHumanBotHint", {
+            human: formatNumber(counts.humanClicks),
+            bot: formatNumber(counts.botClicks),
+          })}
         />
         <StatCard
-          label="Unique visitors"
+          label={t("dash.uniqueVisitors")}
           value={formatNumber(counts.uniqueVisitors)}
           icon={Users}
-          hint="Estimated"
+          hint={t("dash.estimated")}
         />
         <StatCard
-          label="Today"
+          label={t("dash.today")}
           value={formatNumber(counts.clicksToday)}
           icon={CalendarDays}
         />
-        <StatCard label="Last 7 days" value={formatNumber(counts.clicks7d)} />
-        <StatCard label="Last 30 days" value={formatNumber(counts.clicks30d)} />
+        <StatCard label={t("dash.last7Days")} value={formatNumber(counts.clicks7d)} />
+        <StatCard label={t("dash.last30Days")} value={formatNumber(counts.clicks30d)} />
         <StatCard
-          label="Active links"
+          label={t("dash.activeLinks")}
           value={`${formatNumber(data.activeLinks)} / ${formatNumber(
             data.totalLinks,
           )}`}
@@ -117,19 +120,20 @@ export default async function DashboardPage() {
       </div>
 
       <p className="mt-2 text-xs text-muted-foreground">
-        Unique/returning visitors and bot detection are estimates. CTR is not
-        shown because impressions are not measured.
+        {t("dash.estimatesNote")}
       </p>
 
       <Card className="mt-6">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Clicks — last 30 days</CardTitle>
-            <CardDescription>Human clicks per day ({DISPLAY_TZ}).</CardDescription>
+            <CardTitle>{t("dash.clicksLast30DaysTitle")}</CardTitle>
+            <CardDescription>
+              {t("dash.humanClicksPerDay", { tz: DISPLAY_TZ })}
+            </CardDescription>
           </div>
           <Button asChild variant="ghost" size="sm">
             <Link href="/dashboard/analytics">
-              Full analytics
+              {t("dash.fullAnalytics")}
               <ArrowUpRight />
             </Link>
           </Button>
@@ -143,12 +147,12 @@ export default async function DashboardPage() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle>Top links</CardTitle>
-              <CardDescription>Your most-clicked links.</CardDescription>
+              <CardTitle>{t("dash.topLinks")}</CardTitle>
+              <CardDescription>{t("dash.topLinksDescription")}</CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm">
               <Link href="/dashboard/links">
-                View all
+                {t("dash.viewAll")}
                 <ArrowUpRight />
               </Link>
             </Button>
@@ -156,7 +160,7 @@ export default async function DashboardPage() {
           <CardContent>
             {data.topLinks.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                No clicks recorded yet.
+                {t("dash.noClicksYet")}
               </p>
             ) : (
               <div className="divide-y">
@@ -181,13 +185,13 @@ export default async function DashboardPage() {
                         <p className="font-medium tabular-nums">
                           {formatNumber(link.clicks)}
                         </p>
-                        <p className="text-xs text-muted-foreground">clicks</p>
+                        <p className="text-xs text-muted-foreground">{t("dash.clicksLabel")}</p>
                       </div>
                       <div className="hidden sm:block">
                         <p className="font-medium tabular-nums">
                           {formatNumber(link.uniqueVisitors)}
                         </p>
-                        <p className="text-xs text-muted-foreground">unique</p>
+                        <p className="text-xs text-muted-foreground">{t("dash.uniqueLabel")}</p>
                       </div>
                     </div>
                   </div>
@@ -199,8 +203,8 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Devices</CardTitle>
-            <CardDescription>Human clicks by device type.</CardDescription>
+            <CardTitle>{t("dash.devices")}</CardTitle>
+            <CardDescription>{t("dash.devicesDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <BreakdownList data={devices} />
@@ -211,7 +215,7 @@ export default async function DashboardPage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Top browsers</CardTitle>
+            <CardTitle>{t("dash.topBrowsers")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList data={data.browsers} />
@@ -219,24 +223,24 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Top countries</CardTitle>
-            <CardDescription>From edge geo headers, when available.</CardDescription>
+            <CardTitle>{t("dash.topCountries")}</CardTitle>
+            <CardDescription>{t("dash.countriesDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={data.countries}
-              emptyMessage="No geo data available"
+              emptyMessage={t("dash.noGeoData")}
             />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Top referrers</CardTitle>
+            <CardTitle>{t("dash.topReferrers")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={data.referrers}
-              emptyMessage="No referrer data yet"
+              emptyMessage={t("dash.noReferrerData")}
             />
           </CardContent>
         </Card>
@@ -246,17 +250,17 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="flex flex-wrap items-center gap-6 p-5">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Traffic source</Badge>
+              <Badge variant="secondary">{t("dash.trafficSource")}</Badge>
             </div>
             <div className="flex items-center gap-6 text-sm">
               <div>
-                <span className="text-muted-foreground">Normal links: </span>
+                <span className="text-muted-foreground">{t("dash.normalLinks")}: </span>
                 <span className="font-medium tabular-nums">
                   {formatNumber(data.source.link)}
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">QR scans: </span>
+                <span className="text-muted-foreground">{t("dash.qrScans")}: </span>
                 <span className="font-medium tabular-nums">
                   {formatNumber(data.source.qr)}
                 </span>

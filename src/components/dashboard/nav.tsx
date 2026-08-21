@@ -11,18 +11,20 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n/client";
 
 export const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/links", label: "Links", icon: Link2 },
-  { href: "/dashboard/links/new", label: "Create Link", icon: Plus, exact: true },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/campaigns", label: "Campaigns", icon: Megaphone },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "nav.dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard/links", label: "nav.links", icon: Link2 },
+  { href: "/dashboard/links/new", label: "nav.createLink", icon: Plus, exact: true },
+  { href: "/dashboard/analytics", label: "nav.analytics", icon: BarChart3 },
+  { href: "/dashboard/campaigns", label: "nav.campaigns", icon: Megaphone },
+  { href: "/dashboard/settings", label: "nav.settings", icon: Settings },
 ];
 
 export function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const t = useT();
   return (
     <nav className="flex flex-col gap-1">
       {NAV_ITEMS.map((item) => {
@@ -44,7 +46,7 @@ export function DashboardNav({ onNavigate }: { onNavigate?: () => void }) {
             )}
           >
             <item.icon className="h-4 w-4" />
-            {item.label}
+            {t(item.label)}
           </Link>
         );
       })}

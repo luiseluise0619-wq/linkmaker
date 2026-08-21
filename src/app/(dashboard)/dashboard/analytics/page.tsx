@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { BarChart3, Download } from "lucide-react";
 import { requireUser } from "@/lib/auth";
+import { getT } from "@/lib/i18n/server";
 import {
   getAccountAnalytics,
   type TimelineRange,
@@ -26,11 +27,11 @@ export const metadata: Metadata = { title: "Analytics" };
 export const dynamic = "force-dynamic";
 
 const RANGES: TimelineRange[] = ["24h", "7d", "30d", "90d"];
-const RANGE_LABELS: Record<TimelineRange, string> = {
-  "24h": "24 hours",
-  "7d": "7 days",
-  "30d": "30 days",
-  "90d": "90 days",
+const RANGE_LABEL_KEYS: Record<TimelineRange, string> = {
+  "24h": "dash.range24h",
+  "7d": "dash.range7d",
+  "30d": "dash.range30d",
+  "90d": "dash.range90d",
 };
 
 export default async function AnalyticsPage({
@@ -38,6 +39,7 @@ export default async function AnalyticsPage({
 }: {
   searchParams: { range?: string; sort?: string };
 }) {
+  const t = getT();
   const user = await requireUser();
   const range: TimelineRange = RANGES.includes(
     searchParams.range as TimelineRange,
@@ -55,17 +57,20 @@ export default async function AnalyticsPage({
   if (!data.hasLinks) {
     return (
       <>
-        <PageHeader title="Analytics" description="Traffic across all links." />
+        <PageHeader
+          title={t("dash.analyticsTitle")}
+          description={t("dash.analyticsDescriptionEmpty")}
+        />
         <EmptyState
           icon={BarChart3}
-          title="No analytics yet"
-          description="Create links and share them — click data will show up here."
+          title={t("dash.noAnalyticsTitle")}
+          description={t("dash.noAnalyticsDescription")}
           action={
             <Link
               href="/dashboard/links/new"
               className="text-sm font-medium text-primary hover:underline"
             >
-              Create your first link →
+              {t("dash.createFirstLink")} →
             </Link>
           }
         />
@@ -78,20 +83,20 @@ export default async function AnalyticsPage({
   return (
     <>
       <PageHeader
-        title="Analytics"
-        description="Aggregated traffic across all of your links."
+        title={t("dash.analyticsTitle")}
+        description={t("dash.analyticsDescription")}
         actions={
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
               <a href="/api/export/links" download>
                 <Download />
-                Links CSV
+                {t("dash.linksCsv")}
               </a>
             </Button>
             <Button asChild variant="outline">
               <a href="/api/export/events" download>
                 <Download />
-                Events CSV
+                {t("dash.eventsCsv")}
               </a>
             </Button>
           </div>
@@ -100,35 +105,39 @@ export default async function AnalyticsPage({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total clicks"
+          label={t("dash.totalClicks")}
           value={formatNumber(counts.totalClicks)}
-          hint={`${formatNumber(counts.humanClicks)} human · ${formatNumber(
-            counts.botClicks,
-          )} bot (est.)`}
+          hint={t("dash.clicksHumanBotEstHint", {
+            human: formatNumber(counts.humanClicks),
+            bot: formatNumber(counts.botClicks),
+          })}
         />
         <StatCard
-          label="Unique visitors"
+          label={t("dash.uniqueVisitors")}
           value={formatNumber(counts.uniqueVisitors)}
-          hint="Estimated"
+          hint={t("dash.estimated")}
         />
         <StatCard
-          label="Returning"
+          label={t("dash.returning")}
           value={formatNumber(counts.returningVisitors)}
-          hint="Estimated"
+          hint={t("dash.estimated")}
         />
         <StatCard
-          label="Last 30 days"
+          label={t("dash.last30Days")}
           value={formatNumber(counts.clicks30d)}
         />
       </div>
 
       <Card className="mt-6">
         <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-          <CardTitle>Click timeline</CardTitle>
+          <CardTitle>{t("dash.clickTimeline")}</CardTitle>
           <ParamTabs
             param="range"
             defaultValue="7d"
-            options={RANGES.map((r) => ({ value: r, label: RANGE_LABELS[r] }))}
+            options={RANGES.map((r) => ({
+              value: r,
+              label: t(RANGE_LABEL_KEYS[r]),
+            }))}
           />
         </CardHeader>
         <CardContent>
@@ -159,14 +168,14 @@ export default async function AnalyticsPage({
 
       <Card className="mt-4">
         <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
-          <CardTitle>Top links</CardTitle>
+          <CardTitle>{t("dash.topLinks")}</CardTitle>
           <ParamTabs
             param="sort"
             defaultValue="clicks"
             options={[
-              { value: "clicks", label: "Clicks" },
-              { value: "unique", label: "Unique" },
-              { value: "recent", label: "Recent" },
+              { value: "clicks", label: t("dash.sortClicks") },
+              { value: "unique", label: t("dash.sortUnique") },
+              { value: "recent", label: t("dash.sortRecent") },
             ]}
           />
         </CardHeader>
@@ -198,13 +207,13 @@ export default async function AnalyticsPage({
                     <p className="font-medium tabular-nums">
                       {formatNumber(link.clicks)}
                     </p>
-                    <p className="text-xs text-muted-foreground">clicks</p>
+                    <p className="text-xs text-muted-foreground">{t("dash.clicksLabel")}</p>
                   </div>
                   <div className="hidden sm:block">
                     <p className="font-medium tabular-nums">
                       {formatNumber(link.uniqueVisitors)}
                     </p>
-                    <p className="text-xs text-muted-foreground">unique</p>
+                    <p className="text-xs text-muted-foreground">{t("dash.uniqueLabel")}</p>
                   </div>
                 </div>
               </div>

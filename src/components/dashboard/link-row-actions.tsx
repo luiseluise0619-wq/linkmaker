@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { useT } from "@/lib/i18n/client";
 import { deleteLinkAction, setStatusAction } from "@/lib/actions/links";
 
 interface Props {
@@ -39,6 +40,7 @@ interface Props {
 }
 
 export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
+  const t = useT();
   const router = useRouter();
   const { toast } = useToast();
   const [qrOpen, setQrOpen] = React.useState(false);
@@ -48,9 +50,9 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
   async function copy() {
     try {
       await navigator.clipboard.writeText(shortUrl);
-      toast("Short URL copied", "success");
+      toast(t("links.toastCopied"), "success");
     } catch {
-      toast("Could not copy", "error");
+      toast(t("links.toastCopyError"), "error");
     }
   }
 
@@ -59,10 +61,13 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
     const res = await setStatusAction(id, !disabled);
     setPending(false);
     if (res.ok) {
-      toast(disabled ? "Link enabled" : "Link disabled", "success");
+      toast(
+        disabled ? t("links.toastEnabled") : t("links.toastDisabled"),
+        "success",
+      );
       router.refresh();
     } else {
-      toast(res.error ?? "Could not update", "error");
+      toast(res.error ?? t("links.toastUpdateError"), "error");
     }
   }
 
@@ -72,10 +77,10 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
     setPending(false);
     setConfirmOpen(false);
     if (res.ok) {
-      toast("Link deleted", "success");
+      toast(t("links.toastDeleted"), "success");
       router.refresh();
     } else {
-      toast(res.error ?? "Could not delete", "error");
+      toast(res.error ?? t("links.toastDeleteError"), "error");
     }
   }
 
@@ -83,46 +88,46 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="Actions">
+          <Button variant="ghost" size="icon" aria-label={t("links.actionsAria")}>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem onSelect={() => router.push(`/dashboard/links/${slug}`)}>
             <BarChart3 />
-            Analytics
+            {t("links.actionAnalytics")}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => router.push(`/dashboard/links/${slug}/edit`)}
           >
             <Pencil />
-            Edit
+            {t("links.actionEdit")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={copy}>
             <Copy />
-            Copy URL
+            {t("links.actionCopyUrl")}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => setQrOpen(true)}>
             <QrCode />
-            QR code
+            {t("links.actionQrCode")}
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <a href={shortUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink />
-              Open
+              {t("links.actionOpen")}
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={toggleStatus} disabled={pending}>
             <Power />
-            {disabled ? "Enable" : "Disable"}
+            {disabled ? t("links.actionEnable") : t("links.actionDisable")}
           </DropdownMenuItem>
           <DropdownMenuItem
             onSelect={() => setConfirmOpen(true)}
             className="text-destructive focus:text-destructive"
           >
             <Trash2 />
-            Delete
+            {t("links.actionDelete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -131,16 +136,16 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
       <Dialog open={qrOpen} onOpenChange={setQrOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>QR code</DialogTitle>
+            <DialogTitle>{t("links.qrTitle")}</DialogTitle>
             <DialogDescription>
-              Encodes the short URL. Changing the destination never breaks it.
+              {t("links.qrDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center gap-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/links/${id}/qr`}
-              alt="QR code"
+              alt={t("links.qrAlt")}
               width={220}
               height={220}
               className="rounded-lg border bg-white p-2"
@@ -148,11 +153,11 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
             <div className="flex w-full gap-2">
               <Button asChild variant="outline" className="flex-1">
                 <a href={`/api/links/${id}/qr?download=1`} download>
-                  Download PNG
+                  {t("links.downloadPng")}
                 </a>
               </Button>
               <Button variant="outline" className="flex-1" onClick={copy}>
-                Copy URL
+                {t("links.actionCopyUrl")}
               </Button>
             </div>
           </div>
@@ -162,10 +167,9 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete this link?</DialogTitle>
+            <DialogTitle>{t("links.deleteTitle")}</DialogTitle>
             <DialogDescription>
-              This permanently deletes the link and all of its analytics. The
-              short URL will stop working. This cannot be undone.
+              {t("links.deleteDescription")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -174,10 +178,10 @@ export function LinkRowActions({ id, slug, shortUrl, disabled }: Props) {
               onClick={() => setConfirmOpen(false)}
               disabled={pending}
             >
-              Cancel
+              {t("links.cancel")}
             </Button>
             <Button variant="destructive" onClick={remove} disabled={pending}>
-              {pending ? "Deleting…" : "Delete link"}
+              {pending ? t("links.deleting") : t("links.deleteConfirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

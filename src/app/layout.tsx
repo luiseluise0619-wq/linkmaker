@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { appUrl } from "@/lib/utils";
+import { getDictionary, getLocale } from "@/lib/i18n/server";
+import { en } from "@/lib/i18n/dictionaries/en";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -38,10 +40,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const locale = getLocale();
+  const dict = getDictionary(locale);
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers
+          locale={locale}
+          dict={dict}
+          fallback={locale === "en" ? {} : en}
+        >
+          {children}
+        </Providers>
       </body>
     </html>
   );

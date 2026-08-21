@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/toast";
+import { useT } from "@/lib/i18n/client";
 import {
   createLinkAction,
   updateLinkAction,
@@ -73,13 +74,14 @@ interface LinkFormProps {
 
 function SubmitButton({ mode }: { mode: "create" | "edit" }) {
   const { pending } = useFormStatus();
+  const t = useT();
   return (
     <Button type="submit" disabled={pending}>
       {pending
-        ? "Saving…"
+        ? t("forms.saving")
         : mode === "create"
-          ? "Create link"
-          : "Save changes"}
+          ? t("forms.createLink")
+          : t("forms.saveChanges")}
     </Button>
   );
 }
@@ -93,6 +95,7 @@ export function LinkForm({
 }: LinkFormProps) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useT();
   const action = mode === "create" ? createLinkAction : updateLinkAction;
   const [state, formAction] = useFormState<ActionResult, FormData>(action, {
     ok: false,
@@ -145,12 +148,12 @@ export function LinkForm({
       if (data) {
         // On success `state.error` (if present) is a non-fatal warning.
         if (state.error) toast(state.error, "error");
-        else toast("Link created", "success");
+        else toast(t("forms.toastLinkCreated"), "success");
         onCreated?.(data);
       }
     } else {
       if (state.error) toast(state.error, "error");
-      else toast("Changes saved", "success");
+      else toast(t("forms.toastChangesSaved"), "success");
       const data = state.data as { slug: string } | undefined;
       if (data) router.push(`/dashboard/links/${data.slug}`);
       router.refresh();
@@ -170,10 +173,10 @@ export function LinkForm({
     if (mode === "edit" && initial?.id && hasStoredImage) {
       const res = await removeImageAction(initial.id);
       if (!res.ok) {
-        toast(res.error ?? "Could not remove image", "error");
+        toast(res.error ?? t("forms.toastImageRemoveError"), "error");
         return;
       }
-      toast("Image removed", "success");
+      toast(t("forms.toastImageRemoved"), "success");
     }
     setImagePreview(null);
     setHasStoredImage(false);
@@ -189,11 +192,13 @@ export function LinkForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Destination</CardTitle>
+          <CardTitle>{t("forms.destinationSection")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="destinationUrl">Destination URL *</Label>
+            <Label htmlFor="destinationUrl">
+              {t("forms.destinationLabel")} *
+            </Label>
             <Input
               id="destinationUrl"
               name="destinationUrl"
@@ -204,13 +209,12 @@ export function LinkForm({
               required
             />
             <p className="text-xs text-muted-foreground">
-              Where visitors are sent. You can change this later without
-              changing the short link.
+              {t("forms.destinationHelp")}
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="slug">Custom slug (optional)</Label>
+            <Label htmlFor="slug">{t("forms.slugLabel")}</Label>
             <div className="flex items-center gap-2">
               <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
                 /go/
@@ -218,7 +222,7 @@ export function LinkForm({
               <Input
                 id="slug"
                 name="slug"
-                placeholder="auto-generated"
+                placeholder={t("forms.slugPlaceholder")}
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
                 pattern="[a-zA-Z0-9_-]+"
@@ -227,8 +231,7 @@ export function LinkForm({
             {slugChanged && (
               <p className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
                 <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                Changing the slug will break existing QR codes and shared URLs
-                using the old slug.
+                {t("forms.slugChangeWarning")}
               </p>
             )}
           </div>
@@ -237,11 +240,11 @@ export function LinkForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Details</CardTitle>
+          <CardTitle>{t("forms.detailsSection")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
+            <Label htmlFor="title">{t("forms.titleLabel")}</Label>
             <Input
               id="title"
               name="title"
@@ -250,25 +253,25 @@ export function LinkForm({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("forms.descriptionLabel")}</Label>
             <Textarea
               id="description"
               name="description"
-              placeholder="Optional notes about this link"
+              placeholder={t("forms.descriptionPlaceholder")}
               defaultValue={initial?.description ?? ""}
             />
           </div>
 
           {campaigns.length > 0 && (
             <div className="space-y-2">
-              <Label htmlFor="campaignId">Campaign</Label>
+              <Label htmlFor="campaignId">{t("forms.campaignLabel")}</Label>
               <select
                 id="campaignId"
                 name="campaignId"
                 defaultValue={initial?.campaignId ?? ""}
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <option value="">No campaign</option>
+                <option value="">{t("forms.noCampaign")}</option>
                 {campaigns.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -279,7 +282,7 @@ export function LinkForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="expiresAt">Expiration date (optional)</Label>
+            <Label htmlFor="expiresAt">{t("forms.expirationLabel")}</Label>
             <Input
               id="expiresAt"
               type="datetime-local"
@@ -300,14 +303,15 @@ export function LinkForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>Image link (optional)</CardTitle>
+          <CardTitle>{t("forms.imageSection")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {!storageEnabled && (
             <div className="flex items-start gap-2 rounded-md bg-muted p-3 text-sm text-muted-foreground">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-              Image uploads are disabled. Set <code>BLOB_READ_WRITE_TOKEN</code>{" "}
-              to enable them.
+              {t("forms.imageUploadsDisabledPre")}{" "}
+              <code>BLOB_READ_WRITE_TOKEN</code>{" "}
+              {t("forms.imageUploadsDisabledPost")}
             </div>
           )}
           <div className="flex items-start gap-4">
@@ -316,7 +320,7 @@ export function LinkForm({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={imagePreview}
-                  alt="Preview"
+                  alt={t("forms.imagePreviewAlt")}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -335,7 +339,7 @@ export function LinkForm({
               />
               <Input
                 name="imageAlt"
-                placeholder="Alt text (for the embedded image)"
+                placeholder={t("forms.imageAltPlaceholder")}
                 defaultValue={initial?.imageAlt ?? ""}
                 disabled={!storageEnabled}
               />
@@ -347,11 +351,11 @@ export function LinkForm({
                   onClick={onRemoveImage}
                 >
                   <Trash2 />
-                  Remove image
+                  {t("forms.removeImage")}
                 </Button>
               )}
               <p className="text-xs text-muted-foreground">
-                PNG, JPEG, WebP or GIF up to 5 MB.
+                {t("forms.imageFormatsHelp")}
               </p>
             </div>
           </div>
@@ -365,7 +369,7 @@ export function LinkForm({
             onClick={() => setShowUtm((v) => !v)}
             className="flex w-full items-center justify-between"
           >
-            <CardTitle>UTM parameters (optional)</CardTitle>
+            <CardTitle>{t("forms.utmSection")}</CardTitle>
             <ChevronDown
               className={cn(
                 "h-4 w-4 text-muted-foreground transition-transform",
@@ -378,11 +382,11 @@ export function LinkForm({
           <CardContent className="grid gap-4 sm:grid-cols-2">
             {(
               [
-                ["utmSource", "UTM Source", "google"],
-                ["utmMedium", "UTM Medium", "cpc"],
-                ["utmCampaign", "UTM Campaign", "summer_sale"],
-                ["utmTerm", "UTM Term", "running+shoes"],
-                ["utmContent", "UTM Content", "logolink"],
+                ["utmSource", t("forms.utmSource"), "google"],
+                ["utmMedium", t("forms.utmMedium"), "cpc"],
+                ["utmCampaign", t("forms.utmCampaign"), "summer_sale"],
+                ["utmTerm", t("forms.utmTerm"), "running+shoes"],
+                ["utmContent", t("forms.utmContent"), "logolink"],
               ] as const
             ).map(([name, label, ph]) => (
               <div key={name} className="space-y-2">
@@ -404,18 +408,18 @@ export function LinkForm({
       {mode === "edit" && (
         <Card>
           <CardHeader>
-            <CardTitle>Status</CardTitle>
+            <CardTitle>{t("forms.statusSection")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">
-                  {disabled ? "Disabled" : "Active"}
+                  {disabled ? t("forms.statusDisabled") : t("forms.statusActive")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {disabled
-                    ? "This link will not redirect visitors."
-                    : "This link is live and redirecting."}
+                    ? t("forms.statusDisabledDesc")
+                    : t("forms.statusActiveDesc")}
                 </p>
               </div>
               <Switch
@@ -444,7 +448,7 @@ export function LinkForm({
         <Button asChild variant="ghost" type="button">
           <Link href={mode === "edit" && initial ? `/dashboard/links/${initial.slug}` : "/dashboard/links"}>
             <X />
-            Cancel
+            {t("forms.cancel")}
           </Link>
         </Button>
       </div>

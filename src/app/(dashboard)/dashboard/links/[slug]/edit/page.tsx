@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { getOwnedLinkBySlug } from "@/lib/links";
 import { prisma } from "@/lib/prisma";
 import { isStorageConfigured } from "@/lib/storage";
+import { getT } from "@/lib/i18n/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { LinkForm } from "@/components/dashboard/link-form";
 
@@ -15,6 +16,7 @@ export default async function EditLinkPage({
 }: {
   params: { slug: string };
 }) {
+  const t = getT();
   const user = await requireUser();
   const link = await getOwnedLinkBySlug(user.id, params.slug);
   if (!link) notFound();
@@ -28,8 +30,8 @@ export default async function EditLinkPage({
   return (
     <>
       <PageHeader
-        title="Edit link"
-        description="Update the destination or details. Analytics are preserved."
+        title={t("forms.editLinkTitle")}
+        description={t("forms.editLinkDesc")}
       />
       <div className="mx-auto max-w-2xl">
         <LinkForm

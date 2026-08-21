@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CopyButton } from "@/components/copy-button";
+import { useT } from "@/lib/i18n/client";
 
 export function EmbedSnippets({
   shortUrl,
@@ -18,15 +19,16 @@ export function EmbedSnippets({
   imageUrl: string;
   alt: string;
 }) {
+  const t = useT();
   const html = `<a href="${shortUrl}">\n  <img src="${imageUrl}" alt="${alt}">\n</a>`;
   const markdown = `[![${alt}](${imageUrl})](${shortUrl})`;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Image embed</CardTitle>
+        <CardTitle>{t("forms.embedTitle")}</CardTitle>
         <CardDescription>
-          Paste this where you want a clickable, trackable image.
+          {t("forms.embedDesc")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -42,7 +44,7 @@ export function EmbedSnippets({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium">HTML</p>
-            <CopyButton value={html} label="Copy" />
+            <CopyButton value={html} label={t("forms.copy")} />
           </div>
           <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-3 text-xs scrollbar-thin">
             {html}
@@ -52,7 +54,7 @@ export function EmbedSnippets({
         <div>
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-medium">Markdown</p>
-            <CopyButton value={markdown} label="Copy" />
+            <CopyButton value={markdown} label={t("forms.copy")} />
           </div>
           <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-3 text-xs scrollbar-thin">
             {markdown}
@@ -61,8 +63,8 @@ export function EmbedSnippets({
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium">Image URL</p>
-            <CopyButton value={imageUrl} label="Copy" />
+            <p className="text-sm font-medium">{t("forms.embedImageUrlLabel")}</p>
+            <CopyButton value={imageUrl} label={t("forms.copy")} />
           </div>
           <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-3 text-xs scrollbar-thin">
             {imageUrl}

@@ -7,21 +7,23 @@ import {
 } from "@/components/ui/card";
 import { SimpleBarChart } from "@/components/charts/bar-chart";
 import { BreakdownList } from "@/components/charts/breakdown-list";
+import { getT } from "@/lib/i18n/server";
 import { DISPLAY_TZ } from "@/lib/utils";
 import type { getLinkAnalytics } from "@/lib/stats";
 
 type Analytics = Awaited<ReturnType<typeof getLinkAnalytics>>;
 
-const DEVICE_LABELS: Record<string, string> = {
-  MOBILE: "Mobile",
-  DESKTOP: "Desktop",
-  TABLET: "Tablet",
-  UNKNOWN: "Unknown",
+const DEVICE_LABEL_KEYS: Record<string, string> = {
+  MOBILE: "dash.deviceMobile",
+  DESKTOP: "dash.deviceDesktop",
+  TABLET: "dash.deviceTablet",
+  UNKNOWN: "dash.deviceUnknown",
 };
 
 export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
+  const t = getT();
   const devices = analytics.devices.map((d) => ({
-    label: DEVICE_LABELS[d.label] ?? d.label,
+    label: t(DEVICE_LABEL_KEYS[d.label] ?? d.label),
     clicks: d.clicks,
   }));
   const hourData = analytics.byHour.map((h) => ({
@@ -38,9 +40,9 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Hourly activity</CardTitle>
+            <CardTitle>{t("dash.hourlyActivity")}</CardTitle>
             <CardDescription>
-              Clicks by hour of day ({DISPLAY_TZ}).
+              {t("dash.clicksByHour", { tz: DISPLAY_TZ })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -49,8 +51,8 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Weekday activity</CardTitle>
-            <CardDescription>Clicks by day of week.</CardDescription>
+            <CardTitle>{t("dash.weekdayActivity")}</CardTitle>
+            <CardDescription>{t("dash.clicksByWeekday")}</CardDescription>
           </CardHeader>
           <CardContent>
             <SimpleBarChart data={weekdayData} />
@@ -61,7 +63,7 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Devices</CardTitle>
+            <CardTitle>{t("dash.devices")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList data={devices} />
@@ -69,7 +71,7 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Browsers</CardTitle>
+            <CardTitle>{t("dash.browsers")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList data={analytics.browsers} />
@@ -77,7 +79,7 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Operating systems</CardTitle>
+            <CardTitle>{t("dash.operatingSystems")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList data={analytics.os} />
@@ -85,67 +87,67 @@ export function AnalyticsSections({ analytics }: { analytics: Analytics }) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Countries</CardTitle>
+            <CardTitle>{t("dash.countries")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={analytics.countries}
-              emptyMessage="No geo data available"
+              emptyMessage={t("dash.noGeoData")}
             />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Cities</CardTitle>
+            <CardTitle>{t("dash.cities")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={analytics.cities}
-              emptyMessage="No city data available"
+              emptyMessage={t("dash.noCityData")}
             />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Referrers</CardTitle>
+            <CardTitle>{t("dash.referrers")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={analytics.referrers}
-              emptyMessage="No referrer data yet"
+              emptyMessage={t("dash.noReferrerData")}
             />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>UTM source</CardTitle>
+            <CardTitle>{t("dash.utmSource")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={analytics.utmSources}
-              emptyMessage="No UTM source data yet"
+              emptyMessage={t("dash.noUtmSourceData")}
             />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>UTM medium</CardTitle>
+            <CardTitle>{t("dash.utmMedium")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={analytics.utmMediums}
-              emptyMessage="No UTM medium data yet"
+              emptyMessage={t("dash.noUtmMediumData")}
             />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>UTM campaigns</CardTitle>
+            <CardTitle>{t("dash.utmCampaigns")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               data={analytics.utm}
-              emptyMessage="No UTM campaign data yet"
+              emptyMessage={t("dash.noUtmCampaignData")}
             />
           </CardContent>
         </Card>

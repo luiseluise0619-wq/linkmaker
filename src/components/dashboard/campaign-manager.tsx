@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
+import { useT } from "@/lib/i18n/client";
 import {
   createCampaignAction,
   deleteCampaignAction,
@@ -26,9 +27,10 @@ import type { ActionResult } from "@/lib/actions/links";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const t = useT();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Creating…" : "Create campaign"}
+      {pending ? t("forms.creating") : t("forms.createCampaign")}
     </Button>
   );
 }
@@ -36,6 +38,7 @@ function SubmitButton() {
 export function CreateCampaignButton() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useT();
   const [open, setOpen] = React.useState(false);
   const [state, formAction] = useFormState<ActionResult, FormData>(
     createCampaignAction,
@@ -44,7 +47,7 @@ export function CreateCampaignButton() {
 
   React.useEffect(() => {
     if (state.ok) {
-      toast("Campaign created", "success");
+      toast(t("forms.toastCampaignCreated"), "success");
       setOpen(false);
       router.refresh();
     }
@@ -56,27 +59,27 @@ export function CreateCampaignButton() {
       <DialogTrigger asChild>
         <Button>
           <Plus />
-          New campaign
+          {t("forms.newCampaign")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create campaign</DialogTitle>
+          <DialogTitle>{t("forms.createCampaign")}</DialogTitle>
           <DialogDescription>
-            Group links and track their combined performance.
+            {t("forms.createCampaignDesc")}
           </DialogDescription>
         </DialogHeader>
         <form action={formAction} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{t("forms.nameLabel")}</Label>
             <Input id="name" name="name" placeholder="Summer 2026" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t("forms.descriptionLabel")}</Label>
             <Textarea
               id="description"
               name="description"
-              placeholder="Optional"
+              placeholder={t("forms.optionalPlaceholder")}
             />
           </div>
           {state.error && (
@@ -94,6 +97,7 @@ export function CreateCampaignButton() {
 export function DeleteCampaignButton({ id }: { id: string }) {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useT();
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
@@ -103,34 +107,37 @@ export function DeleteCampaignButton({ id }: { id: string }) {
     setPending(false);
     setOpen(false);
     if (res.ok) {
-      toast("Campaign deleted", "success");
+      toast(t("forms.toastCampaignDeleted"), "success");
       router.refresh();
     } else {
-      toast(res.error ?? "Could not delete", "error");
+      toast(res.error ?? t("forms.toastCampaignDeleteError"), "error");
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Delete campaign">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={t("forms.deleteCampaignAria")}
+        >
           <Trash2 className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete campaign?</DialogTitle>
+          <DialogTitle>{t("forms.deleteCampaignTitle")}</DialogTitle>
           <DialogDescription>
-            Links in this campaign are kept, but they&apos;ll no longer be
-            grouped under it.
+            {t("forms.deleteCampaignDesc")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>
-            Cancel
+            {t("forms.cancel")}
           </Button>
           <Button variant="destructive" onClick={remove} disabled={pending}>
-            {pending ? "Deleting…" : "Delete"}
+            {pending ? t("forms.deleting") : t("forms.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

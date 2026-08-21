@@ -4,6 +4,7 @@ import { Megaphone } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatNumber } from "@/lib/utils";
+import { getT } from "@/lib/i18n/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import {
@@ -22,6 +23,7 @@ export const metadata: Metadata = { title: "Campaigns" };
 export const dynamic = "force-dynamic";
 
 export default async function CampaignsPage() {
+  const t = getT();
   const user = await requireUser();
   const campaigns = await prisma.campaign.findMany({
     where: { userId: user.id },
@@ -50,16 +52,16 @@ export default async function CampaignsPage() {
   return (
     <>
       <PageHeader
-        title="Campaigns"
-        description="Group links and track combined performance."
+        title={t("forms.campaignsTitle")}
+        description={t("forms.campaignsDesc")}
         actions={<CreateCampaignButton />}
       />
 
       {campaigns.length === 0 ? (
         <EmptyState
           icon={Megaphone}
-          title="No campaigns yet"
-          description="Create a campaign to organize related links and measure them together."
+          title={t("forms.noCampaignsTitle")}
+          description={t("forms.noCampaignsDesc")}
           action={<CreateCampaignButton />}
         />
       ) : (
@@ -80,19 +82,25 @@ export default async function CampaignsPage() {
               <CardContent>
                 <div className="flex items-center gap-4 text-sm">
                   <Badge variant="secondary">
-                    {formatNumber(c._count.links)} links
+                    {t("forms.linksCount", {
+                      count: formatNumber(c._count.links),
+                    })}
                   </Badge>
                   <span className="text-muted-foreground">
-                    {formatNumber(campaignClicks.get(c.id) ?? 0)} clicks
+                    {t("forms.clicksCount", {
+                      count: formatNumber(campaignClicks.get(c.id) ?? 0),
+                    })}
                   </span>
                 </div>
                 <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Created {formatDate(c.createdAt)}</span>
+                  <span>
+                    {t("forms.createdOn", { date: formatDate(c.createdAt) })}
+                  </span>
                   <Link
                     href={`/dashboard/links?q=`}
                     className="font-medium text-primary hover:underline"
                   >
-                    View links
+                    {t("forms.viewLinks")}
                   </Link>
                 </div>
               </CardContent>

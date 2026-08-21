@@ -14,11 +14,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
+import { useT } from "@/lib/i18n/client";
 import { resetMetricsAction } from "@/lib/actions/workspace";
 
 export function ResetMetricsButton() {
   const router = useRouter();
   const { toast } = useToast();
+  const t = useT();
   const [open, setOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
@@ -29,10 +31,10 @@ export function ResetMetricsButton() {
     setOpen(false);
     if (res.ok) {
       const n = (res.data as { deleted: number } | undefined)?.deleted ?? 0;
-      toast(`Analytics reset — ${n} events cleared`, "success");
+      toast(t("forms.toastAnalyticsReset", { count: n }), "success");
       router.refresh();
     } else {
-      toast(res.error ?? "Could not reset analytics", "error");
+      toast(res.error ?? t("forms.toastAnalyticsResetError"), "error");
     }
   }
 
@@ -41,16 +43,14 @@ export function ResetMetricsButton() {
       <DialogTrigger asChild>
         <Button variant="outline">
           <RotateCcw />
-          Reset all analytics
+          {t("forms.resetAllAnalytics")}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Reset all analytics?</DialogTitle>
+          <DialogTitle>{t("forms.resetAnalyticsTitle")}</DialogTitle>
           <DialogDescription>
-            This permanently deletes every recorded click event for all of your
-            links, setting all numbers back to zero. Your links keep working —
-            only the analytics are cleared. This cannot be undone.
+            {t("forms.resetAnalyticsDesc")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -59,10 +59,10 @@ export function ResetMetricsButton() {
             onClick={() => setOpen(false)}
             disabled={pending}
           >
-            Cancel
+            {t("forms.cancel")}
           </Button>
           <Button variant="destructive" onClick={reset} disabled={pending}>
-            {pending ? "Resetting…" : "Reset analytics"}
+            {pending ? t("forms.resetting") : t("forms.resetAnalytics")}
           </Button>
         </DialogFooter>
       </DialogContent>

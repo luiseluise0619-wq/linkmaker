@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ExternalLink, Pencil } from "lucide-react";
 import { requireUser } from "@/lib/auth";
+import { getT } from "@/lib/i18n/server";
 import { getOwnedLinkBySlug } from "@/lib/links";
 import { getLinkAnalytics } from "@/lib/stats";
 import { formatDateTime, formatNumber, shortUrl } from "@/lib/utils";
@@ -31,6 +32,7 @@ export default async function LinkDetailPage({
   params: { slug: string };
 }) {
   const user = await requireUser();
+  const t = getT();
   const link = await getOwnedLinkBySlug(user.id, params.slug);
   if (!link) notFound();
 
@@ -39,29 +41,29 @@ export default async function LinkDetailPage({
   const url = shortUrl(link.slug);
   const expired = link.expiresAt && link.expiresAt.getTime() <= Date.now();
   const statusBadge = expired
-    ? { label: "Expired", variant: "warning" as const }
+    ? { label: t("links.statusExpired"), variant: "warning" as const }
     : link.status === "DISABLED"
-      ? { label: "Disabled", variant: "secondary" as const }
-      : { label: "Active", variant: "success" as const };
+      ? { label: t("links.statusDisabled"), variant: "secondary" as const }
+      : { label: t("links.statusActive"), variant: "success" as const };
 
   return (
     <>
       <PageHeader
         title={link.title || `/go/${link.slug}`}
-        description="Link details and analytics."
+        description={t("links.detailDescription")}
         actions={
           <>
             <QrDialog linkId={link.id} shortUrl={url} />
             <Button asChild variant="outline">
               <a href={url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink />
-                Open
+                {t("links.open")}
               </a>
             </Button>
             <Button asChild>
               <Link href={`/dashboard/links/${link.slug}/edit`}>
                 <Pencil />
-                Edit
+                {t("links.edit")}
               </Link>
             </Button>
           </>
@@ -71,13 +73,13 @@ export default async function LinkDetailPage({
       {/* Meta card */}
       <Card className="mb-6">
         <CardContent className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-4">
-          <Meta label="Short URL">
+          <Meta label={t("links.metaShortUrl")}>
             <div className="flex items-center gap-1">
               <code className="truncate text-sm">{url}</code>
               <CopyButton value={url} size="icon" className="h-7 w-7" />
             </div>
           </Meta>
-          <Meta label="Destination">
+          <Meta label={t("links.metaDestination")}>
             <a
               href={link.destinationUrl}
               target="_blank"
@@ -88,31 +90,33 @@ export default async function LinkDetailPage({
               {link.destinationUrl}
             </a>
           </Meta>
-          <Meta label="Status">
+          <Meta label={t("links.metaStatus")}>
             <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
           </Meta>
-          <Meta label="Created">
+          <Meta label={t("links.metaCreated")}>
             <span className="text-sm">{formatDateTime(link.createdAt)}</span>
           </Meta>
-          <Meta label="Last click">
+          <Meta label={t("links.metaLastClick")}>
             <span className="text-sm">
               {counts.lastClick ? formatDateTime(counts.lastClick) : "—"}
             </span>
           </Meta>
           {link.expiresAt && (
-            <Meta label="Expires">
+            <Meta label={t("links.metaExpires")}>
               <span className="text-sm">{formatDateTime(link.expiresAt)}</span>
             </Meta>
           )}
           {link.campaign && (
-            <Meta label="Campaign">
+            <Meta label={t("links.metaCampaign")}>
               <span className="text-sm">{link.campaign.name}</span>
             </Meta>
           )}
-          <Meta label="Traffic source">
+          <Meta label={t("links.metaTrafficSource")}>
             <span className="text-sm">
-              {formatNumber(analytics.source.link)} link ·{" "}
-              {formatNumber(analytics.source.qr)} QR
+              {t("links.trafficSourceValue", {
+                link: formatNumber(analytics.source.link),
+                qr: formatNumber(analytics.source.qr),
+              })}
             </span>
           </Meta>
         </CardContent>
@@ -121,34 +125,44 @@ export default async function LinkDetailPage({
       {/* KPIs */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatCard
-          label="Total clicks"
+          label={t("links.kpiTotalClicks")}
           value={formatNumber(counts.totalClicks)}
-          hint={`${formatNumber(counts.humanClicks)} human · ${formatNumber(
-            counts.botClicks,
-          )} bot`}
+          hint={t("links.kpiClicksHint", {
+            human: formatNumber(counts.humanClicks),
+            bot: formatNumber(counts.botClicks),
+          })}
         />
         <StatCard
-          label="Unique visitors"
+          label={t("links.kpiUniqueVisitors")}
           value={formatNumber(counts.uniqueVisitors)}
-          hint="Estimated"
+          hint={t("links.kpiEstimated")}
         />
         <StatCard
-          label="Returning"
+          label={t("links.kpiReturning")}
           value={formatNumber(counts.returningVisitors)}
-          hint="Estimated"
+          hint={t("links.kpiEstimated")}
         />
-        <StatCard label="Today" value={formatNumber(counts.clicksToday)} />
-        <StatCard label="This week" value={formatNumber(counts.clicks7d)} />
-        <StatCard label="This month" value={formatNumber(counts.clicks30d)} />
+        <StatCard
+          label={t("links.kpiToday")}
+          value={formatNumber(counts.clicksToday)}
+        />
+        <StatCard
+          label={t("links.kpiThisWeek")}
+          value={formatNumber(counts.clicks7d)}
+        />
+        <StatCard
+          label={t("links.kpiThisMonth")}
+          value={formatNumber(counts.clicks30d)}
+        />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Bot detection and unique/returning visitors are estimates.
+        {t("links.estimatesNote")}
       </p>
 
       {/* Timeline */}
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Clicks — last 7 days</CardTitle>
+          <CardTitle>{t("links.timelineTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <TimelineChart data={analytics.timeline7d} />
@@ -166,7 +180,7 @@ export default async function LinkDetailPage({
           <EmbedSnippets
             shortUrl={url}
             imageUrl={link.image.url}
-            alt={link.image.alt || link.title || "Campaign image"}
+            alt={link.image.alt || link.title || t("links.campaignImageAlt")}
           />
         </div>
       )}

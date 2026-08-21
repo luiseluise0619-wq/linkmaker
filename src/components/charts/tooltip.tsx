@@ -2,13 +2,16 @@
 
 import type { TooltipProps } from "recharts";
 import { formatNumber } from "@/lib/utils";
+import { useT } from "@/lib/i18n/client";
 
 export function ChartTooltip({
   active,
   payload,
   label,
-  valueLabel = "Clicks",
+  valueLabel,
 }: TooltipProps<number, string> & { valueLabel?: string }) {
+  const t = useT();
+  const resolvedValueLabel = valueLabel ?? t("misc.clicks");
   if (!active || !payload || payload.length === 0) return null;
   return (
     <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-md">
@@ -17,7 +20,7 @@ export function ChartTooltip({
       )}
       {payload.map((entry, i) => (
         <p key={i} className="text-muted-foreground">
-          {valueLabel}:{" "}
+          {resolvedValueLabel}:{" "}
           <span className="font-medium text-popover-foreground">
             {formatNumber(Number(entry.value ?? 0))}
           </span>

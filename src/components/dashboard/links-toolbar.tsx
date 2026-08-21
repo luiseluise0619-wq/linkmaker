@@ -3,27 +3,29 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
 import { Input } from "@/components/ui/input";
 
 const FILTERS = [
-  { value: "all", label: "All links" },
-  { value: "active", label: "Active" },
-  { value: "disabled", label: "Disabled" },
-  { value: "expired", label: "Expired" },
-  { value: "high", label: "High traffic" },
-  { value: "recent", label: "Recently created" },
+  { value: "all", labelKey: "links.filterAll" },
+  { value: "active", labelKey: "links.filterActive" },
+  { value: "disabled", labelKey: "links.filterDisabled" },
+  { value: "expired", labelKey: "links.filterExpired" },
+  { value: "high", labelKey: "links.filterHigh" },
+  { value: "recent", labelKey: "links.filterRecent" },
 ];
 
 const SORTS = [
-  { value: "recent", label: "Newest" },
-  { value: "clicks", label: "Most clicks" },
-  { value: "oldest", label: "Oldest" },
+  { value: "recent", labelKey: "links.sortNewest" },
+  { value: "clicks", labelKey: "links.sortMostClicks" },
+  { value: "oldest", labelKey: "links.sortOldest" },
 ];
 
 const selectClass =
   "h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
 export function LinksToolbar() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const [q, setQ] = React.useState(params.get("q") ?? "");
@@ -50,7 +52,7 @@ export function LinksToolbar() {
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by title, slug or destination…"
+          placeholder={t("links.searchPlaceholder")}
           className="pl-9"
         />
       </form>
@@ -59,11 +61,11 @@ export function LinksToolbar() {
           className={selectClass}
           value={params.get("filter") ?? "all"}
           onChange={(e) => push({ filter: e.target.value })}
-          aria-label="Filter"
+          aria-label={t("links.filterAria")}
         >
           {FILTERS.map((f) => (
             <option key={f.value} value={f.value}>
-              {f.label}
+              {t(f.labelKey)}
             </option>
           ))}
         </select>
@@ -71,11 +73,11 @@ export function LinksToolbar() {
           className={selectClass}
           value={params.get("sort") ?? "recent"}
           onChange={(e) => push({ sort: e.target.value })}
-          aria-label="Sort"
+          aria-label={t("links.sortAria")}
         >
           {SORTS.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label}
+              {t(s.labelKey)}
             </option>
           ))}
         </select>

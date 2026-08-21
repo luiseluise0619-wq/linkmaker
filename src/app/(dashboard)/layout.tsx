@@ -3,7 +3,9 @@ import { Plus } from "lucide-react";
 import { getDashboardToken, requireUser } from "@/lib/auth";
 import { dashboardUrl } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import { LanguageToggle } from "@/components/language-toggle";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getT } from "@/lib/i18n/server";
 import { Button } from "@/components/ui/button";
 import { DashboardNav } from "@/components/dashboard/nav";
 import { UserMenu } from "@/components/dashboard/user-menu";
@@ -17,6 +19,7 @@ export default async function DashboardLayout({
 }) {
   const user = await requireUser();
   const token = await getDashboardToken(user.id);
+  const t = getT();
 
   return (
     <div className="min-h-screen">
@@ -32,7 +35,7 @@ export default async function DashboardLayout({
           <Button asChild className="w-full">
             <Link href="/dashboard/links/new">
               <Plus />
-              New link
+              {t("nav.newLink")}
             </Link>
           </Button>
         </div>
@@ -48,6 +51,7 @@ export default async function DashboardLayout({
             </span>
           </div>
           <div className="flex items-center gap-1">
+            <LanguageToggle />
             <ThemeToggle />
             <UserMenu dashboardHref={dashboardUrl(token)} />
           </div>

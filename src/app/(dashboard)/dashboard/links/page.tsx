@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import { Download, Link2, Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
+import { getT, type TranslateFn } from "@/lib/i18n/server";
 import { prisma } from "@/lib/prisma";
 import { formatDate, formatNumber, shortUrl } from "@/lib/utils";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -37,11 +38,13 @@ type SearchParams = {
 function statusBadge(
   status: "ACTIVE" | "DISABLED",
   expiresAt: Date | null,
+  t: TranslateFn,
 ): { label: string; variant: "success" | "secondary" | "warning" } {
   if (expiresAt && expiresAt.getTime() <= Date.now())
-    return { label: "Expired", variant: "warning" };
-  if (status === "DISABLED") return { label: "Disabled", variant: "secondary" };
-  return { label: "Active", variant: "success" };
+    return { label: t("links.statusExpired"), variant: "warning" };
+  if (status === "DISABLED")
+    return { label: t("links.statusDisabled"), variant: "secondary" };
+  return { label: t("links.statusActive"), variant: "success" };
 }
 
 export default async function LinksPage({
@@ -50,6 +53,7 @@ export default async function LinksPage({
   searchParams: SearchParams;
 }) {
   const user = await requireUser();
+  const t = getT();
   const page = Math.max(1, Number(searchParams.page ?? 1) || 1);
   const q = searchParams.q?.trim();
   const filter = searchParams.filter ?? "all";
@@ -116,22 +120,22 @@ export default async function LinksPage({
   return (
     <>
       <PageHeader
-        title="Links"
-        description="Manage your short links, image links and QR codes."
+        title={t("links.pageTitle")}
+        description={t("links.pageDescription")}
         actions={
           <>
             {total > 0 && (
               <Button asChild variant="outline">
                 <a href="/api/export/links" download>
                   <Download />
-                  Export CSV
+                  {t("links.exportCsv")}
                 </a>
               </Button>
             )}
             <Button asChild>
               <Link href="/dashboard/links/new">
                 <Plus />
-                New link
+                {t("links.newLink")}
               </Link>
             </Button>
           </>
@@ -144,19 +148,19 @@ export default async function LinksPage({
         q || filter !== "all" ? (
           <EmptyState
             icon={Link2}
-            title="No matching links"
-            description="Try adjusting your search or filters."
+            title={t("links.emptyNoMatchTitle")}
+            description={t("links.emptyNoMatchDescription")}
           />
         ) : (
           <EmptyState
             icon={Link2}
-            title="No links yet"
-            description="Create your first trackable short link to get started."
+            title={t("links.emptyTitle")}
+            description={t("links.emptyDescription")}
             action={
               <Button asChild>
                 <Link href="/dashboard/links/new">
                   <Plus />
-                  Create link
+                  {t("links.createLink")}
                 </Link>
               </Button>
             }
@@ -167,19 +171,23 @@ export default async function LinksPage({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Link</TableHead>
+                <TableHead>{t("links.colLink")}</TableHead>
                 <TableHead className="hidden md:table-cell">
-                  Destination
+                  {t("links.colDestination")}
                 </TableHead>
-                <TableHead className="text-right">Clicks</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden sm:table-cell">Created</TableHead>
+                <TableHead className="text-right">
+                  {t("links.colClicks")}
+                </TableHead>
+                <TableHead>{t("links.colStatus")}</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {t("links.colCreated")}
+                </TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {links.map((link) => {
-                const badge = statusBadge(link.status, link.expiresAt);
+                const badge = statusBadge(link.status, link.expiresAt, t);
                 const url = shortUrl(link.slug);
                 return (
                   <TableRow key={link.id}>

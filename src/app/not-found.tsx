@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
+import { getT } from "@/lib/i18n/server";
 
 export default function NotFound() {
+  const t = getT();
   return (
     <div className="flex min-h-screen flex-col">
       <header className="border-b">
@@ -14,13 +16,13 @@ export default function NotFound() {
         <div className="text-center">
           <p className="text-sm font-medium text-primary">404</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Page not found
+            {t("misc.notFoundTitle")}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            The page you&apos;re looking for doesn&apos;t exist or has moved.
+            {t("misc.notFoundBody")}
           </p>
           <Button asChild className="mt-6">
-            <Link href="/">Back to homepage</Link>
+            <Link href="/">{t("misc.backToHomepage")}</Link>
           </Button>
         </div>
       </main>

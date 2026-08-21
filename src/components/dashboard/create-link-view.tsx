@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n/client";
 import { CopyButton } from "@/components/copy-button";
 import { QrDialog } from "@/components/qr-dialog";
 import { LinkForm } from "@/components/dashboard/link-form";
@@ -27,6 +28,7 @@ export function CreateLinkView({
   campaigns: Campaign[];
   storageEnabled: boolean;
 }) {
+  const t = useT();
   const [created, setCreated] = React.useState<{
     id: string;
     slug: string;
@@ -40,10 +42,9 @@ export function CreateLinkView({
     return (
       <Card className="mx-auto max-w-2xl">
         <CardHeader>
-          <CardTitle>Your short link is ready</CardTitle>
+          <CardTitle>{t("dash.shortLinkReady")}</CardTitle>
           <CardDescription>
-            Share it anywhere. You can edit the destination anytime without
-            changing this URL.
+            {t("dash.shortLinkReadyDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -52,11 +53,11 @@ export function CreateLinkView({
             <CopyButton value={url} />
           </div>
           <div className="flex flex-wrap gap-2">
-            <CopyButton value={url} label="Copy" />
+            <CopyButton value={url} label={t("dash.copy")} />
             <Button asChild variant="outline">
               <a href={url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink />
-                Open
+                {t("dash.open")}
               </a>
             </Button>
             <QrDialog
@@ -65,30 +66,30 @@ export function CreateLinkView({
               trigger={
                 <Button variant="outline">
                   <QrCode />
-                  QR code
+                  {t("dash.qrCode")}
                 </Button>
               }
             />
             <Button asChild variant="outline">
               <Link href={`/dashboard/links/${created.slug}/edit`}>
                 <Pencil />
-                Edit
+                {t("dash.edit")}
               </Link>
             </Button>
             <Button asChild variant="outline">
               <Link href={`/dashboard/links/${created.slug}`}>
                 <BarChart3 />
-                Analytics
+                {t("dash.analyticsTitle")}
               </Link>
             </Button>
           </div>
           <div className="flex gap-2 pt-2">
             <Button onClick={() => setCreated(null)} variant="secondary">
               <Plus />
-              Create another
+              {t("dash.createAnother")}
             </Button>
             <Button asChild variant="ghost">
-              <Link href="/dashboard/links">Go to links</Link>
+              <Link href="/dashboard/links">{t("dash.goToLinks")}</Link>
             </Button>
           </div>
         </CardContent>

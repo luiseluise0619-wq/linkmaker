@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ExternalLink, Lock } from "lucide-react";
+import { getT } from "@/lib/i18n/server";
 import { getPublicLinkByToken } from "@/lib/links";
 import { getLinkAnalytics } from "@/lib/stats";
 import { formatDateTime, formatNumber, shortUrl } from "@/lib/utils";
@@ -45,6 +46,7 @@ export default async function PublicStatsPage({
   params: { slug: string };
   searchParams: { t?: string };
 }) {
+  const t = getT();
   const token = searchParams.t ?? "";
   const link = await getPublicLinkByToken(params.slug, token);
 
@@ -56,14 +58,13 @@ export default async function PublicStatsPage({
             <Lock className="h-6 w-6 text-muted-foreground" />
           </div>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">
-            Stats not available
+            {t("misc.statsNotAvailableTitle")}
           </h1>
           <p className="mt-2 text-muted-foreground">
-            This analytics link is invalid or missing its access token. Use the
-            private stats link you received when the short link was created.
+            {t("misc.statsNotAvailableBody")}
           </p>
           <Button asChild className="mt-6">
-            <Link href="/">Go to homepage</Link>
+            <Link href="/">{t("misc.goToHomepage")}</Link>
           </Button>
         </div>
       </Shell>
@@ -81,7 +82,7 @@ export default async function PublicStatsPage({
           {link.title || `/go/${link.slug}`}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Anonymous link analytics. Bookmark this page to check back.
+          {t("misc.publicStatsSubtitle")}
         </p>
       </div>
 
@@ -89,7 +90,7 @@ export default async function PublicStatsPage({
         <CardContent className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Short URL
+              {t("misc.shortUrl")}
             </p>
             <div className="mt-1 flex items-center gap-1">
               <code className="truncate text-sm">{url}</code>
@@ -98,7 +99,7 @@ export default async function PublicStatsPage({
           </div>
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Destination
+              {t("misc.destination")}
             </p>
             <a
               href={link.destinationUrl}
@@ -111,7 +112,7 @@ export default async function PublicStatsPage({
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Created
+              {t("misc.created")}
             </p>
             <p className="mt-1 text-sm">{formatDateTime(link.createdAt)}</p>
           </div>
@@ -119,7 +120,7 @@ export default async function PublicStatsPage({
             <Button asChild variant="outline" size="sm">
               <a href={url} target="_blank" rel="noopener noreferrer">
                 <ExternalLink />
-                Open link
+                {t("misc.openLink")}
               </a>
             </Button>
           </div>
@@ -128,24 +129,25 @@ export default async function PublicStatsPage({
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total clicks"
+          label={t("misc.totalClicks")}
           value={formatNumber(counts.totalClicks)}
-          hint={`${formatNumber(counts.humanClicks)} human · ${formatNumber(
-            counts.botClicks,
-          )} bot (est.)`}
+          hint={t("misc.statHintHumanBot", {
+            human: formatNumber(counts.humanClicks),
+            bot: formatNumber(counts.botClicks),
+          })}
         />
         <StatCard
-          label="Unique visitors"
+          label={t("misc.uniqueVisitors")}
           value={formatNumber(counts.uniqueVisitors)}
-          hint="Estimated"
+          hint={t("misc.estimated")}
         />
-        <StatCard label="Today" value={formatNumber(counts.clicksToday)} />
-        <StatCard label="Last 7 days" value={formatNumber(counts.clicks7d)} />
+        <StatCard label={t("misc.today")} value={formatNumber(counts.clicksToday)} />
+        <StatCard label={t("misc.last7Days")} value={formatNumber(counts.clicks7d)} />
       </div>
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Clicks — last 7 days</CardTitle>
+          <CardTitle>{t("misc.clicksLast7Days")}</CardTitle>
         </CardHeader>
         <CardContent>
           <TimelineChart data={analytics.timeline7d} />
@@ -157,9 +159,9 @@ export default async function PublicStatsPage({
       </div>
 
       <div className="mt-8 rounded-lg border bg-muted/30 p-4 text-center text-sm text-muted-foreground">
-        Want to create your own trackable links — no account needed?{" "}
+        {t("misc.ctaCreateOwn")}
         <Link href="/" className="font-medium text-foreground hover:underline">
-          Make one for free
+          {t("misc.ctaMakeFree")}
         </Link>
         .
       </div>

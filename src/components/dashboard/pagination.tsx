@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { getT } from "@/lib/i18n/server";
 import { cn } from "@/lib/utils";
 
 export function Pagination({
@@ -13,10 +14,11 @@ export function Pagination({
   makeHref: (page: number) => string;
 }) {
   if (pages <= 1) return null;
+  const t = getT();
   return (
     <div className="mt-4 flex items-center justify-between">
       <p className="text-sm text-muted-foreground">
-        Page {page} of {pages}
+        {t("links.pageOf", { current: page, total: pages })}
       </p>
       <div className="flex gap-2">
         <Link
@@ -28,7 +30,7 @@ export function Pagination({
           )}
         >
           <ChevronLeft />
-          Previous
+          {t("links.previous")}
         </Link>
         <Link
           href={makeHref(page + 1)}
@@ -38,7 +40,7 @@ export function Pagination({
             page >= pages && "pointer-events-none opacity-50",
           )}
         >
-          Next
+          {t("links.next")}
           <ChevronRight />
         </Link>
       </div>

@@ -21,19 +21,21 @@ import {
   createPublicLinkAction,
   type PublicLinkState,
 } from "@/lib/actions/public";
+import { useT } from "@/lib/i18n/client";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const t = useT();
   return (
     <Button type="submit" size="lg" disabled={pending}>
       {pending ? (
         <>
           <Loader2 className="animate-spin" />
-          Creating…
+          {t("landing.creatorCreating")}
         </>
       ) : (
         <>
-          Shorten
+          {t("landing.creatorShorten")}
           <ArrowRight />
         </>
       )}
@@ -44,16 +46,18 @@ function SubmitButton() {
 /** Full-card overlay shown while the link + dashboard are being created. */
 function CreatingOverlay() {
   const { pending } = useFormStatus();
+  const t = useT();
   if (!pending) return null;
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-xl bg-background/80 backdrop-blur-sm">
       <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      <p className="text-sm font-medium">Creating your link &amp; dashboard…</p>
+      <p className="text-sm font-medium">{t("landing.creatorOverlay")}</p>
     </div>
   );
 }
 
 export function PublicLinkCreator() {
+  const t = useT();
   const [state, formAction] = useFormState<PublicLinkState, FormData>(
     createPublicLinkAction,
     { ok: false },
@@ -68,7 +72,7 @@ export function PublicLinkCreator() {
         <CardContent className="space-y-5 p-6">
           <div>
             <p className="text-sm font-medium text-muted-foreground">
-              Your short link
+              {t("landing.creatorShortLinkLabel")}
             </p>
             <div className="mt-2 flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
               <code className="flex-1 truncate text-sm">{shortUrl}</code>
@@ -80,12 +84,10 @@ export function PublicLinkCreator() {
           <div className="rounded-lg border border-primary/30 bg-primary/5 p-3">
             <p className="flex items-center gap-2 text-sm font-medium">
               <LayoutDashboard className="h-4 w-4 text-primary" />
-              Your dashboard link — save it
+              {t("landing.creatorDashboardLabel")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              No account needed. Open this link on any device to manage your
-              links and see analytics. Anyone with it can access your dashboard,
-              so keep it private.
+              {t("landing.creatorDashboardNote")}
             </p>
             <div className="mt-2 flex items-center gap-2 rounded-md border bg-background p-2">
               <code className="flex-1 truncate text-xs">{dashboardUrl}</code>
@@ -97,19 +99,19 @@ export function PublicLinkCreator() {
             <Button asChild>
               <Link href="/dashboard">
                 <LayoutDashboard />
-                Open dashboard
+                {t("landing.creatorOpenDashboard")}
               </Link>
             </Button>
-            <CopyButton value={shortUrl} label="Copy link" />
+            <CopyButton value={shortUrl} label={t("landing.creatorCopyLink")} />
             <Button asChild variant="outline">
               <a href={shortUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink />
-                Open
+                {t("landing.creatorOpen")}
               </a>
             </Button>
             <Button asChild variant="outline">
               <a href={`/api/qr/${slug}?download=1`} download>
-                Download QR
+                {t("landing.creatorDownloadQr")}
               </a>
             </Button>
           </div>
@@ -118,7 +120,7 @@ export function PublicLinkCreator() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/qr/${slug}`}
-              alt="QR code"
+              alt={t("landing.creatorQrAlt")}
               width={160}
               height={160}
               className="rounded-lg border bg-white p-2"
@@ -128,11 +130,10 @@ export function PublicLinkCreator() {
           <div className="rounded-lg border bg-muted/30 p-3">
             <p className="flex items-center gap-2 text-sm font-medium">
               <Info className="h-4 w-4 text-muted-foreground" />
-              Share-only stats link
+              {t("landing.creatorStatsLabel")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              A read-only analytics page for just this link (no dashboard
-              access).
+              {t("landing.creatorStatsNote")}
             </p>
             <div className="mt-2 flex items-center gap-2 rounded-md border bg-background p-2">
               <code className="flex-1 truncate text-xs">{manageUrl}</code>
@@ -146,7 +147,7 @@ export function PublicLinkCreator() {
               onClick={() => setResetKey((k) => k + 1)}
             >
               <Plus />
-              Create another
+              {t("landing.creatorCreateAnother")}
             </Button>
           </div>
         </CardContent>
@@ -165,9 +166,9 @@ export function PublicLinkCreator() {
               type="url"
               inputMode="url"
               required
-              placeholder="Paste a long URL to shorten…"
+              placeholder={t("landing.creatorPlaceholder")}
               className="h-11 flex-1 text-base"
-              aria-label="Destination URL"
+              aria-label={t("landing.creatorDestinationAria")}
             />
             <SubmitButton />
           </div>
@@ -175,7 +176,7 @@ export function PublicLinkCreator() {
           {showSlug ? (
             <div className="space-y-1.5">
               <Label htmlFor="pub-slug" className="text-xs text-muted-foreground">
-                Custom link (optional)
+                {t("landing.creatorCustomLabel")}
               </Label>
               <div className="flex items-center gap-2">
                 <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
@@ -184,7 +185,7 @@ export function PublicLinkCreator() {
                 <Input
                   id="pub-slug"
                   name="slug"
-                  placeholder="my-link"
+                  placeholder={t("landing.creatorSlugPlaceholder")}
                   pattern="[a-zA-Z0-9_-]+"
                 />
               </div>
@@ -195,7 +196,7 @@ export function PublicLinkCreator() {
               onClick={() => setShowSlug(true)}
               className="text-xs font-medium text-muted-foreground hover:text-foreground"
             >
-              + Customize the link
+              {t("landing.creatorCustomizeToggle")}
             </button>
           )}
 
@@ -207,8 +208,7 @@ export function PublicLinkCreator() {
           )}
 
           <p className="text-xs text-muted-foreground">
-            No account needed. You&apos;ll get a private dashboard link to manage
-            everything.
+            {t("landing.creatorReassurance")}
           </p>
         </form>
       </CardContent>

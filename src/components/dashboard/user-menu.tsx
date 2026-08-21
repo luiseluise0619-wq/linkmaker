@@ -11,8 +11,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/lib/actions/auth";
+import { useT } from "@/lib/i18n/client";
 
 export function UserMenu({ dashboardHref }: { dashboardHref: string }) {
+  const t = useT();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -20,7 +22,7 @@ export function UserMenu({ dashboardHref }: { dashboardHref: string }) {
           variant="ghost"
           size="icon"
           className="rounded-full"
-          aria-label="Workspace menu"
+          aria-label={t("nav.workspaceMenu")}
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
             W
@@ -30,9 +32,9 @@ export function UserMenu({ dashboardHref }: { dashboardHref: string }) {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col">
-            <span className="truncate">Your workspace</span>
+            <span className="truncate">{t("nav.yourWorkspace")}</span>
             <span className="truncate text-xs font-normal text-muted-foreground">
-              Anonymous · no account
+              {t("nav.anonymousNoAccount")}
             </span>
           </div>
         </DropdownMenuLabel>
@@ -40,13 +42,13 @@ export function UserMenu({ dashboardHref }: { dashboardHref: string }) {
         <DropdownMenuItem asChild>
           <a href="/dashboard/settings">
             <SettingsIcon />
-            Settings &amp; dashboard link
+            {t("nav.settingsAndDashboardLink")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href={dashboardHref}>
             <Plus />
-            Open on another device
+            {t("nav.openOnAnotherDevice")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -54,7 +56,7 @@ export function UserMenu({ dashboardHref }: { dashboardHref: string }) {
           <form action={logoutAction} className="w-full">
             <button type="submit" className="flex w-full items-center gap-2">
               <LogOut />
-              Start a new workspace
+              {t("nav.startNewWorkspace")}
             </button>
           </form>
         </DropdownMenuItem>

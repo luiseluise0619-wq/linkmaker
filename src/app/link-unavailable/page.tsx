@@ -2,40 +2,41 @@ import Link from "next/link";
 import { AlertTriangle, Ban, Clock, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
-
-const REASONS: Record<
-  string,
-  { icon: React.ElementType; title: string; body: string }
-> = {
-  notfound: {
-    icon: SearchX,
-    title: "Link not found",
-    body: "This short link doesn't exist. It may have been deleted or the URL was mistyped.",
-  },
-  disabled: {
-    icon: Ban,
-    title: "Link disabled",
-    body: "The owner has temporarily disabled this link. Please check back later.",
-  },
-  expired: {
-    icon: Clock,
-    title: "Link expired",
-    body: "This link has passed its expiration date and no longer redirects.",
-  },
-};
 
 export default function LinkUnavailablePage({
   searchParams,
 }: {
   searchParams: { reason?: string };
 }) {
+  const t = getT();
   const reason = searchParams.reason ?? "notfound";
-  const info = REASONS[reason] ?? {
+  const reasons: Record<
+    string,
+    { icon: React.ElementType; title: string; body: string }
+  > = {
+    notfound: {
+      icon: SearchX,
+      title: t("misc.linkNotFoundTitle"),
+      body: t("misc.linkNotFoundBody"),
+    },
+    disabled: {
+      icon: Ban,
+      title: t("misc.linkDisabledTitle"),
+      body: t("misc.linkDisabledBody"),
+    },
+    expired: {
+      icon: Clock,
+      title: t("misc.linkExpiredTitle"),
+      body: t("misc.linkExpiredBody"),
+    },
+  };
+  const info = reasons[reason] ?? {
     icon: AlertTriangle,
-    title: "Link unavailable",
-    body: "This link can't be opened right now.",
+    title: t("misc.linkUnavailableTitle"),
+    body: t("misc.linkUnavailableBody"),
   };
   const Icon = info.icon;
 
@@ -56,7 +57,7 @@ export default function LinkUnavailablePage({
           </h1>
           <p className="mt-2 text-muted-foreground">{info.body}</p>
           <Button asChild className="mt-6">
-            <Link href="/">Go to homepage</Link>
+            <Link href="/">{t("misc.goToHomepage")}</Link>
           </Button>
         </div>
       </main>

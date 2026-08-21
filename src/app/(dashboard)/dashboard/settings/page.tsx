@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { isStorageConfigured } from "@/lib/storage";
 import { logoutAction } from "@/lib/actions/auth";
 import { dashboardUrl, formatNumber } from "@/lib/utils";
+import { getT } from "@/lib/i18n/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export const metadata: Metadata = { title: "Settings" };
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
+  const t = getT();
   const user = await requireUser();
   const [token, linkCount, eventCount] = await Promise.all([
     getDashboardToken(user.id),
@@ -36,15 +38,17 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" description="Your workspace and preferences." />
+      <PageHeader
+        title={t("forms.settingsTitle")}
+        description={t("forms.settingsDesc")}
+      />
 
       <div className="mx-auto max-w-2xl space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Dashboard link</CardTitle>
+            <CardTitle>{t("forms.dashboardLinkTitle")}</CardTitle>
             <CardDescription>
-              This is how you get back to this workspace — no account or password.
-              Save it. Anyone with the link can access your dashboard.
+              {t("forms.dashboardLinkDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -57,19 +61,24 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Usage</CardTitle>
+            <CardTitle>{t("forms.usageTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Row label="Links" value={formatNumber(linkCount)} />
+            <Row label={t("forms.usageLinks")} value={formatNumber(linkCount)} />
             <Separator />
-            <Row label="Recorded click events" value={formatNumber(eventCount)} />
+            <Row
+              label={t("forms.usageClickEvents")}
+              value={formatNumber(eventCount)}
+            />
             <Separator />
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                Image storage
+                {t("forms.imageStorage")}
               </span>
               <Badge variant={isStorageConfigured() ? "success" : "secondary"}>
-                {isStorageConfigured() ? "Configured" : "Not configured"}
+                {isStorageConfigured()
+                  ? t("forms.configured")
+                  : t("forms.notConfigured")}
               </Badge>
             </div>
           </CardContent>
@@ -77,22 +86,22 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Export data</CardTitle>
+            <CardTitle>{t("forms.exportTitle")}</CardTitle>
             <CardDescription>
-              Download your links and raw click events as CSV (opens in Excel).
+              {t("forms.exportDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
               <a href="/api/export/links" download>
                 <Download />
-                Links CSV
+                {t("forms.linksCsv")}
               </a>
             </Button>
             <Button asChild variant="outline">
               <a href="/api/export/events" download>
                 <Download />
-                Click events CSV
+                {t("forms.eventsCsv")}
               </a>
             </Button>
           </CardContent>
@@ -100,10 +109,9 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Reset analytics</CardTitle>
+            <CardTitle>{t("forms.resetAnalytics")}</CardTitle>
             <CardDescription>
-              Clear all recorded clicks and set every number back to zero. Your
-              links keep working.
+              {t("forms.resetAnalyticsCardDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -113,10 +121,9 @@ export default async function SettingsPage() {
 
         <Card className="border-destructive/40">
           <CardHeader>
-            <CardTitle>Delete all links</CardTitle>
+            <CardTitle>{t("forms.deleteAllLinks")}</CardTitle>
             <CardDescription>
-              Permanently delete every link and its data to free up space. The
-              short URLs stop working. This cannot be undone.
+              {t("forms.deleteAllLinksCardDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -126,37 +133,38 @@ export default async function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Privacy &amp; data</CardTitle>
-            <CardDescription>How your analytics data is handled.</CardDescription>
+            <CardTitle>{t("forms.privacyTitle")}</CardTitle>
+            <CardDescription>{t("forms.privacyDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Row label="Data retention" value={`${retention} days`} />
+            <Row
+              label={t("forms.dataRetention")}
+              value={t("forms.daysValue", { days: retention })}
+            />
             <p className="text-sm text-muted-foreground">
-              We never store raw IP addresses; unique visitors are estimated with
-              rotating, salted hashes.
+              {t("forms.privacyNote")}
             </p>
             <Link
               href="/privacy"
               className="text-sm font-medium text-primary hover:underline"
             >
-              Read the privacy policy →
+              {t("forms.readPrivacyPolicy")} →
             </Link>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>New workspace</CardTitle>
+            <CardTitle>{t("forms.newWorkspaceTitle")}</CardTitle>
             <CardDescription>
-              Start fresh with an empty workspace. Your current links stay
-              reachable via the dashboard link above — save it first.
+              {t("forms.newWorkspaceDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form action={logoutAction}>
               <Button type="submit" variant="outline">
                 <LogOut />
-                Start a new workspace
+                {t("forms.startNewWorkspace")}
               </Button>
             </form>
           </CardContent>

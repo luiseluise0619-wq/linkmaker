@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/copy-button";
+import { useT } from "@/lib/i18n/client";
 
 interface QrDialogProps {
   linkId: string;
@@ -20,28 +21,27 @@ interface QrDialogProps {
 }
 
 export function QrDialog({ linkId, shortUrl, trigger }: QrDialogProps) {
+  const t = useT();
   const qrSrc = `/api/links/${linkId}/qr`;
   return (
     <Dialog>
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button variant="outline" size="icon" aria-label="QR code">
+          <Button variant="outline" size="icon" aria-label={t("misc.qrCode")}>
             <QrCode />
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>QR code</DialogTitle>
-          <DialogDescription>
-            Encodes the short URL, so changing the destination never breaks it.
-          </DialogDescription>
+          <DialogTitle>{t("misc.qrCode")}</DialogTitle>
+          <DialogDescription>{t("misc.qrDescription")}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={qrSrc}
-            alt="QR code"
+            alt={t("misc.qrCode")}
             width={220}
             height={220}
             className="rounded-lg border bg-white p-2"
@@ -58,7 +58,7 @@ export function QrDialog({ linkId, shortUrl, trigger }: QrDialogProps) {
             </Button>
             <CopyButton
               value={shortUrl}
-              label="Copy URL"
+              label={t("misc.copyUrl")}
               className="flex-1"
             />
           </div>
