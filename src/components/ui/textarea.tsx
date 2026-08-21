@@ -1,6 +1,8 @@
+// Textarea(여러 줄 입력창): 긴 글(설명 등)을 입력하는 <textarea> 래퍼입니다. (shadcn 스타일)
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+// forwardRef로 부모가 이 입력창 DOM에 접근할 수 있게 합니다.
 const Textarea = React.forwardRef<
   HTMLTextAreaElement,
   React.ComponentProps<"textarea">

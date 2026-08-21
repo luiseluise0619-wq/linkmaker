@@ -1,6 +1,8 @@
+// Separator(구분선): 내용을 나누는 얇은 선입니다. orientation으로 가로선/세로선을 선택합니다.
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+// role="separator": 이 요소가 구분선임을 보조기기에 알려주는 접근성 표시입니다.
 const Separator = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {

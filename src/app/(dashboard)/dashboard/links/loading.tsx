@@ -1,3 +1,5 @@
+// 파일 목적: 링크 목록 페이지의 데이터를 불러오는 동안 보여주는 로딩 화면입니다.
+//   (loading.tsx = 데이터 준비 중 자동으로 뜨는 임시 화면, Skeleton은 자리표시용 회색 박스)
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LinksLoading() {

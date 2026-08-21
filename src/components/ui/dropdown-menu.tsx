@@ -1,16 +1,20 @@
+// DropdownMenu(드롭다운 메뉴): 버튼을 누르면 아래로 펼쳐지는 메뉴 목록 primitive입니다.
+// Radix의 DropdownMenu를 감싸 앱 스타일을 입힌 것입니다. "use client"이므로 브라우저에서 동작합니다.
 "use client";
 
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils";
 
-const DropdownMenu = DropdownMenuPrimitive.Root;
-const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
-const DropdownMenuGroup = DropdownMenuPrimitive.Group;
-const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
-const DropdownMenuSub = DropdownMenuPrimitive.Sub;
-const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
+// 아래는 Radix 원본을 그대로 이름만 바꿔 내보냅니다.
+const DropdownMenu = DropdownMenuPrimitive.Root; // Root: 메뉴 전체를 감싸며 열림 상태 관리
+const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger; // Trigger: 누르면 메뉴를 여는 버튼
+const DropdownMenuGroup = DropdownMenuPrimitive.Group; // Group: 항목들을 묶는 그룹
+const DropdownMenuPortal = DropdownMenuPrimitive.Portal; // Portal: 메뉴를 body 최상단에 렌더링
+const DropdownMenuSub = DropdownMenuPrimitive.Sub; // Sub: 하위(중첩) 메뉴
+const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup; // RadioGroup: 하나만 선택되는 항목 묶음
 
+// DropdownMenuContent: 실제로 펼쳐지는 메뉴 상자. Portal로 띄우고 열림/닫힘 애니메이션이 붙습니다.
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
@@ -29,6 +33,7 @@ const DropdownMenuContent = React.forwardRef<
 ));
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
 
+// DropdownMenuItem: 메뉴 안의 클릭 가능한 한 줄 항목. inset이면 왼쪽 여백을 더 줍니다.
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
@@ -47,6 +52,7 @@ const DropdownMenuItem = React.forwardRef<
 ));
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
 
+// DropdownMenuLabel: 클릭 안 되는 제목/구분용 글자 (예: "내 워크스페이스")
 const DropdownMenuLabel = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
@@ -61,6 +67,7 @@ const DropdownMenuLabel = React.forwardRef<
 ));
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
 
+// DropdownMenuSeparator: 메뉴 항목 사이를 나누는 얇은 가로선
 const DropdownMenuSeparator = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>

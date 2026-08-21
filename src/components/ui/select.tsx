@@ -1,14 +1,17 @@
+// Select(셀렉트/선택 상자): 목록에서 하나를 고르는 드롭다운 primitive입니다. (Radix Select 래퍼)
+// 기본 HTML <select>보다 스타일과 동작을 세밀하게 다룰 수 있습니다. "use client"로 브라우저에서 동작합니다.
 "use client";
 
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "lucide-react"; // 체크표시/아래·위 화살표 아이콘
 import { cn } from "@/lib/utils";
 
-const Select = SelectPrimitive.Root;
-const SelectGroup = SelectPrimitive.Group;
-const SelectValue = SelectPrimitive.Value;
+const Select = SelectPrimitive.Root; // Root: 선택 상자 전체를 감싸며 선택값 상태를 관리
+const SelectGroup = SelectPrimitive.Group; // Group: 항목들을 묶는 그룹
+const SelectValue = SelectPrimitive.Value; // Value: 현재 선택된 값을 보여주는 자리
 
+// SelectTrigger: 눌러서 목록을 여는 버튼(닫힌 상태에서 보이는 부분). 오른쪽에 아래 화살표를 표시합니다.
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
@@ -29,6 +32,7 @@ const SelectTrigger = React.forwardRef<
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
 
+// SelectContent: 펼쳐진 목록 상자. 위/아래 스크롤 버튼과 실제 항목들이 들어가는 Viewport로 구성됩니다.
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
