@@ -1,3 +1,5 @@
+// 차트에서 마우스를 올렸을 때 뜨는 작은 말풍선(툴팁). 해당 지점의 값을 보여준다.
+// recharts가 active/payload/label 정보를 넘겨주면 그걸 예쁘게 그려 준다.
 "use client";
 
 import type { TooltipProps } from "recharts";

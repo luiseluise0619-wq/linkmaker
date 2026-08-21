@@ -1,6 +1,10 @@
+// "분류 목록"을 막대 비율로 보여주는 컴포넌트(예: 국가별/브라우저별 클릭 순위).
+// 각 항목의 클릭수를 전체 대비 퍼센트로 계산해 가로 막대와 %를 그린다.
+// 서버 컴포넌트("use client" 없음): 받은 데이터를 그리기만 한다.
 import { formatNumber } from "@/lib/utils";
 import { EmptyChart } from "./empty";
 
+// label=항목 이름(예: "대한민국"), clicks=그 항목의 클릭수.
 interface Item {
   label: string;
   clicks: number;
